@@ -17,7 +17,7 @@ To download the source of the HTML DOM Bindings for the Reactive Extensions for 
 
 ### Installing with NuGet
 
-Coming soon!
+	PM> Install-Package RxJS-Bridges-HTML
 
 ### Getting Started with the HTML DOM Bindings
 
@@ -76,13 +76,13 @@ Putting it all together, our throttledInput looks like the following:
 		.throttle(500)
 		.distinctUntilChanged();
 
-Now that we have the throttled input from the textbox, we need to query our service, in this case, the Wikipedia API, for suggestions based upon our input.  To do this, we'll create a function called searchWikipedia which calls the Rx.Observable.getScript method which wraps making a JSONP call in an RxJS [AsyncSubject](http://msdn.microsoft.com/en-us/library/hh229363\(v=VS.103\).aspx).
+Now that we have the throttled input from the textbox, we need to query our service, in this case, the Wikipedia API, for suggestions based upon our input.  To do this, we'll create a function called searchWikipedia which calls the Rx.Observable.getJSONPRequest method which wraps making a JSONP call in an RxJS [AsyncSubject](http://msdn.microsoft.com/en-us/library/hh229363\(v=VS.103\).aspx).
 
 	function searchWikipedia(term) {
 		var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
 			+ '&format=json' 
 			+ '&search=' + encodeURI(term);
-		return Rx.Observable.getScript(url);
+		return Rx.Observable.getJSONPRequest(url);
 	}
 
 Now that the Wikipedia Search has been wrapped, we can tie together throttled input and our service call.  In this case, we will call select on the throttledInput to then take the text from our textInput and then use it to query Wikipedia, filtering out empty records.  Finally, to deal with concurrency issues, we'll need to ensure we're getting only the latest value.  Issues can arise with asynchronous programming where an earlier value, if not cancelled properly, can be returned before the latest value is returned, thus causing bugs.  To ensure that this doesn't happen, we have the [switchLatest]((http://msdn.microsoft.com/en-us/library/hh229197(v=VS.103).aspx)) method which returns only the latest value.
@@ -129,11 +129,11 @@ We've only scratched the surface of this library in this simple example.
  * fromEvent
 
 * Ajax Methods
- * getScript
  * ajax
  * get
  * post
  * getJSON
+ * getJSONPRequest
 
 ## LICENSE
 

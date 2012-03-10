@@ -9,13 +9,20 @@
             function searchWikipedia (term) {
                 var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
                     + term + '&callback=JSONPCallback';
-                return Rx.Observable.getScript(url);
+                return Rx.Observable.getJSONPRequest(url);
+            }
+
+            function clearChildren (element) {
+                while (element.firstChild) {
+                    element.removeChild(element.firstChild);
+                }                
             }
 
             function initialize () {
-                var input = document.getElementById('textInput'),
+                var input = document.getElementById('textInput')
+                , ul = document.getElementById('results')
 
-                    keyup = Rx.Observable.fromEvent(input, 'keyup').select(function(ev) {
+                , keyup = Rx.Observable.fromEvent(input, 'keyup').select(function(ev) {
                         return ev.target.value;
                     }).where(function(text) {
                         return text.length > 2;
@@ -29,19 +36,23 @@
                         return data.length === 2; 
                     });
 
+                
+
                 searcher.subscribe(function (data) {                    
-                    var ul = document.getElementById('results'),
-                        results = data[1];
+                    var results = data[1];
 
-                    while (ul.firstChild) {
-                        ul.removeChild(ul.firstChild);
-                    }
+                    clearChildren(ul);
 
-                    for (var i = 0; i < results.length; i++) {
+                    for (var i = 0, len = results.length; i < len; i++) {
                         var li = document.createElement('li');
                         li.innerHTML = results[i];
                         ul.appendChild(li);
                     }
+                }, function (error) {
+                    clearChildren(ul);
+                    var li = document.createElement('li');
+                    li.innerHTML = 'Error: ' + error.message;
+                    ul.appendChild(li);
                 });
 
             }
