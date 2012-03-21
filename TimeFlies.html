@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+    <head>
+        <title>Rx for JavaScript Rocks!</title>   
+            <script src="rx.min.js" type="text/javascript"></script>
+            <script src="rx.time.min.js" type="text/javascript"></script>
+            <script src="rx.html.min.js" type="text/javascript"></script>
+            <script type="text/javascript">
+
+            function getOffset(element) {
+                var doc = element.ownerDocument,
+                    docElem = doc.documentElement;
+                    body = doc.body,
+                    clientTop  = docElem.clientTop  || body.clientTop  || 0,
+                    clientLeft = docElem.clientLeft || body.clientLeft || 0,
+                    scrollTop  = window.pageYOffset,
+                    scrollLeft = window.pageXOffset;
+
+                return { top : scrollTop  - clientTop, left: scrollLeft - clientLeft };
+            }
+
+            function initialize () {
+                var i,
+                    text = 'time flies like an arrow',
+                    container = document.getElementById('container'),
+                    mouseMove = Rx.Observable.fromEvent(document, 'mousemove'),
+
+                    mouseMoveOffset = mouseMove.select(function(value) {
+                        var offset = getOffset(container);
+                        return {
+                           offsetX : value.clientX - offset.left + document.documentElement.scrollLeft,
+                           offsetY : value.clientY - offset.top + document.documentElement.scrollTop
+                       };
+                    });
+
+                for (i = 0; i < text.length; i++) {
+                    (function(i) {
+                        var s = document.createElement('span');
+                        s.innerHTML = text[i];
+                        s.style.position = 'absolute';
+                        container.appendChild(s);                        
+
+                        mouseMoveOffset.delay(i * 100).subscribe(function(mouseEvent) {
+                            s.style.top = mouseEvent.offsetY + 'px';
+                            s.style.left = mouseEvent.offsetX + i * 10 + 15 + 'px';
+                        });
+                    })(i);
+                }
+            }
+        </script>
+    </head>
+
+    <body style="font-family: Consolas, monospace; overflow: hidden" onload="initialize();">
+        <div id="container"></div>
+    </body>
+</html>

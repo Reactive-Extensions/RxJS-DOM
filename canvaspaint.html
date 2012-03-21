@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+	<head>
+            <script src="rx.min.js" type="text/javascript"></script>
+            <script src="rx.html.min.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			function getOffset(event) {
+				return { 
+					offsetX: event.offsetX === undefined ? event.layerX : event.offsetX,
+	 				offsetY: event.offsetY === undefined ? event.layerY : event.offsetY
+ 				};
+			}
+
+			window.onload = function () {
+				var canvas = document.getElementById('tutorial');
+				if (canvas.getContext) {
+					var ctx = canvas.getContext('2d');
+					ctx.beginPath();
+
+					var mouseMoves = Rx.Observable.fromEvent(canvas, 'mousemove')
+					, mouseDiffs = mouseMoves.bufferWithCount(2, 1).select(function (x) {
+						return { first: getOffset(x[0]), second: getOffset(x[1]) };
+					})
+					, mouseButton = Rx.Observable.fromEvent(canvas, 'mousedown').select(function (x) { return true; })
+						.merge(Rx.Observable.fromEvent(canvas, 'mouseup').select(function (x) { return false; }))
+					, paint = mouseButton.select(function (down) { return down ? mouseDiffs : mouseDiffs.take(0) }).switchLatest();
+
+					paint.subscribe(function (x) {
+						ctx.moveTo(x.first.offsetX, x.first.offsetY);
+						ctx.lineTo(x.second.offsetX, x.second.offsetY);
+						ctx.stroke();
+					});
+				}
+			};
+		</script>
+	</head>
+	<body>
+		<canvas id="tutorial" width="640" height="480"></canvas>
+	</body>
+</html>
