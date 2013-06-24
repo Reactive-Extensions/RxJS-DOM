@@ -1,9 +1,11 @@
 ﻿<!DOCTYPE html>
+<html>
     <head>
         <title>Rx for JavaScript Rocks!</title>   
-            <script src="rx.js" type="text/javascript"></script>
-            <script src="rx.time.js" type="text/javascript"></script>
-            <script src="../lib/rxjs-html.js" type="text/javascript"></script>
+            <script src="../node_modules/rx/rx.js" type="text/javascript"></script>
+            <script src="../node_modules/rx/rx.binding.js" type="text/javascript"></script>
+            <script src="../node_modules/rx/rx.time.js" type="text/javascript"></script>
+            <script src="../rx.dom.js" type="text/javascript"></script>
             <script type="text/javascript">
 
             function searchWikipedia (term) {
@@ -19,24 +21,26 @@
             }
 
             function initialize () {
-                var input = document.getElementById('textInput')
-                , ul = document.getElementById('results')
-
-                , keyup = Rx.Observable.fromEvent(input, 'keyup').select(function(ev) {
+                var input = document.getElementById('textInput'),
+                    ul = document.getElementById('results')
+                    
+                var keyup = Rx.Observable.fromEvent(input, 'keyup')
+                    .select(function(ev) {
                         return ev.target.value;
-                    }).where(function(text) {
+                    })
+                    .where(function(text) {
                         return text.length > 2;
-                    }).throttle(500)
-                    .distinctUntilChanged(),
+                    })
+                    .throttle(500)
+                    .distinctUntilChanged();
 
-                    searcher = keyup.select(function (text) {
-                        return searchWikipedia(text);
-                    }).switchLatest()
-                    .where(function (data) {
-                        return data.length === 2; 
-                    });
-
-                
+                var searcher = keyup.select(function (text) {
+                    return searchWikipedia(text);
+                })
+                .switchLatest()
+                .where(function (data) {
+                    return data.length === 2; 
+                });
 
                 searcher.subscribe(function (data) {                    
                     var results = data[1];

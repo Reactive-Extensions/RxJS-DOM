@@ -33,7 +33,7 @@
                 if (typeof settings === 'string') {
                     settings = { url: settings }
                 }
-                if (!!settings.jsonp) {
+                if (!settings.jsonp) {
                     settings.jsonp = 'JSONPCallback';
                 }
 
@@ -43,12 +43,12 @@
 
                 settings.url = settings.url.replace('=' + settings.jsonp, '=' + handler);
 
-                global[handler] = function (data) {
+                window[handler] = function (data) {
                     observer.onNext(data);
                     observer.onCompleted();  
                 };
 
-                tag.src = url;
+                tag.src = settings.url;
                 tag.async = true;
                 tag.onload = tag.onreadystatechange = function (_, abort) {
                     if ( abort || !tag.readyState || /loaded|complete/.test(tag.readyState) ) {
@@ -57,21 +57,23 @@
                             destroy(tag);
                         }
                         tag = undefined;
-                        delete global[handler];
+                        delete window[handler];
                     }
                     
                 };  
                 head.insertBefore(tag, head.firstChild);
 
                 return disposableCreate(function () {
+                    if (!tag) {
+                        return;
+                    }
                     if (!/loaded|complete/.test(tag.readyState)) {
-                        tag.abort();
                         tag.onload = tag.onreadystatechange = null;
                         if (head && tag.parentNode) {
                             destroy(tag);
                         }
                         tag = undefined;
-                        delete global[handler];
+                        delete window[handler];
                     }
                 });
             });
