@@ -12,6 +12,10 @@
     /**
      * Creates a cold observable JSONP Request with the specified settings.
      *
+     * @example 
+     *   source = Rx.Observable.getJSONPRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
+     *   source = Rx.Observable.getJSONPRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
+     *
      * @param {Object} settings Can be one of the following:
      *
      *  A string of the URL to make the JSONP call with the JSONPCallback=? in the url.
@@ -81,6 +85,10 @@
     /**
      * Creates a hot observable JSONP Request with the specified settings.
      *
+     * @example 
+     *   source = Rx.Observable.getJSONPRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
+     *   source = Rx.Observable.getJSONPRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
+     * 
      * @param {Object} settings Can be one of the following:
      *
      *  A string of the URL to make the JSONP call with the JSONPCallback=? in the url.
