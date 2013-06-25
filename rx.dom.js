@@ -316,7 +316,7 @@
                             destroy(tag);
                         }
                         tag = undefined;
-                        delete window[handler];
+                        window[handler] = undefined;
                     }
                     
                 };  
@@ -332,7 +332,7 @@
                             destroy(tag);
                         }
                         tag = undefined;
-                        delete window[handler];
+                        window[handler] = undefined;
                     }
                 });
             });
