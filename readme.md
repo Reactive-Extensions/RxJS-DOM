@@ -12,12 +12,12 @@ There are a number of ways to get started with the HTML DOM Bindings for RxJS.
 
 To download the source of the HTML DOM Bindings for the Reactive Extensions for JavaScript, type in the following:
 
-    git clone https://github.com/Reactive-Extensions/rxjs-html.git
-    cd ./rxjs-html
+    git clone https://github.com/Reactive-Extensions/rxjs-dom.git
+    cd ./rxjs-dom
 
-### Installing with NuGet
+### Installing with NPM
 
-	PM> Install-Package RxJS-Bridges-HTML
+	npm install rx-dom
 
 ### Getting Started with the HTML DOM Bindings
 
@@ -25,13 +25,12 @@ Let's walk through a simple yet powerful example of the Reactive Extensions for 
 
 We'll start out with a basic skeleton for our application with script references to RxJS, RxJS Time-based methods, and the RxJS Bindings for HTML DOM, along with a textbox for input and a list for our results.
 
-	<script type="text/javascript" src="rx.min.js"></script>
-	<script type="text/javascript" src="rx.time.min.js"></script>
-	<script type="text/javascript" src="rx-html.js"><script>
+	<script type="text/javascript" src="rx.js"></script>
+	<script type="text/javascript" src="rx.binding.js"></script>
+	<script type="text/javascript" src="rx.time.js"></script>
+	<script type="text/javascript" src="rx.dom.js"><script>
 	<script type="text/javascript">
-		$(function () {
-			...
-		})();
+		
 	</script>
 	...
 	<input id="textInput" type="text"></input>
@@ -76,7 +75,7 @@ Putting it all together, our throttledInput looks like the following:
 		.throttle(500)
 		.distinctUntilChanged();
 
-Now that we have the throttled input from the textbox, we need to query our service, in this case, the Wikipedia API, for suggestions based upon our input.  To do this, we'll create a function called searchWikipedia which calls the Rx.Observable.getJSONPRequest method which wraps making a JSONP call in an RxJS [AsyncSubject](http://msdn.microsoft.com/en-us/library/hh229363\(v=VS.103\).aspx).
+Now that we have the throttled input from the textbox, we need to query our service, in this case, the Wikipedia API, for suggestions based upon our input.  To do this, we'll create a function called searchWikipedia which calls the Rx.Observable.getJSONPRequest method which wraps making a JSONP call.
 
 	function searchWikipedia(term) {
 		var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
@@ -125,19 +124,339 @@ We've only scratched the surface of this library in this simple example.
 		
 ### Implemented Bindings
 
-* DOM Events
- * fromEvent
+Events
 
-* Ajax Methods
- * ajax
- * get
- * post
- * getJSON
- * getJSONPRequest
+- [fromEvent](#fromEvent)
+
+Ajax
+
+- [ajax](#ajax)
+- [ajaxCold](#ajaxCold)
+- [get](#get)
+- [post](#post)
+
+JSONP
+
+- [getJSONPRequest](#getJSONPRequest)
+- [getJSONPRequestCold](#getJSONPRequestCold)
+
+
+## <a id="fromEvent"></a>fromEvent
+
+Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
+
+### Syntax ###
+
+	Rx.Observable.fromEvent(element, eventName);
+
+### Parameters ###
+
+* element
+
+  > _Required_ **Object** - The DOMElement or NodeList to attach a listener.
+
+* eventName
+
+  > _Required_ **String** - The event name to attach the observable sequence.
+
+### Return Value ###
+
+An observable sequence of events from the specified element and the specified event.  
+
+### Example ###
+
+The following example demonstrates attaching to a text input and listening to the keyup event.
+
+	// Get the element
+	var el = document.getElementById('text1');
+
+	// Attach to the keyup event
+	var obs = Rx.Observable.fromEvent(el, 'keyup')
+		.subscribe( function (e) {
+			// Write the keycode
+			console.log(e.keyCode);
+		});
+
+## <a id="ajax"></a>ajax
+
+Creates a hot observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
+
+### Syntax ###
+
+	// Using string URL
+	Rx.Observable.ajax(url);
+
+	// Using settings object
+	Rx.Observable.ajax(settings);
+
+### Parameters ###
+
+The parameters can be one of the following:
+
+* url
+
+  > **String** - A string of the URL to make the Ajax call.
+
+* settings
+
+  > **Object** - An object with the following properties
+  	
+		- url: URL of the request
+  		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
+  		- async: Whether the request is async
+  		- headers: Optional headers
+
+### Return Value ###
+
+An observable sequence containing the XMLHttpRequest.
+
+### Example ###
+
+The following example uses a simple URL to retrieve a list of products. 
+
+	Rx.Observable.ajax('/products')
+		.subscribe( 
+			function (xhr) {
+
+				var products = JSON.parse(xhr.responseText);
+	
+				products.forEach(function (product) {
+					console.log(product);
+				});
+			},
+			function (error) {
+				// Log the error
+			}
+		);
+
+## <a id="ajaxCold"></a>ajaxCold
+
+Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
+
+### Syntax ###
+
+	// Using string URL
+	Rx.Observable.ajax(url);
+
+	// Using settings object
+	Rx.Observable.ajax(settings);
+
+### Parameters ###
+
+The parameters can be one of the following:
+
+* url
+
+  > **String** - A string of the URL to make the Ajax call.
+
+* settings
+
+  > **Object** - An object with the following properties
+  	
+		- url: URL of the request
+  		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
+  		- async: Whether the request is async
+  		- headers: Optional headers
+
+### Return Value ###
+
+An observable sequence containing the XMLHttpRequest.
+
+### Example ###
+
+The following example uses a simple URL to retrieve a list of products. 
+
+	Rx.Observable.ajax('/products')
+		.subscribe( 
+			function (xhr) {
+
+				var products = JSON.parse(xhr.responseText);
+	
+				products.forEach(function (product) {
+					console.log(product);
+				});
+			},
+			function (error) {
+				// Log the error
+			}
+		);
+
+## <a id="get"></a>get
+
+Creates an observable sequence from an Ajax GET Request with the body.  This method is just shorthand for the ajax method with the GET method.
+
+### Syntax ###
+
+	Rx.Observable.get(url);
+
+### Parameters ###
+
+* url
+
+  > _Required_ **String** - The URL to GET
+
+### Return Value ###
+
+The observable sequence which contains the response from the Ajax GET.
+
+### Example ###
+
+	Rx.Observable.get('/products')
+		.subscribe(
+			function (xhr) {
+				var text = xhr.responseText;
+				console.log(text);
+			},
+			function (err) {
+				// Log the error
+			}
+		);
+
+## <a id="post"></a>post
+
+Creates an observable sequence from an Ajax POST Request with the body.  This method is just shorthand for the ajax method with the POST method.
+
+### Syntax ###
+
+	Rx.Observable.post(url, body);
+
+### Parameters ###
+
+* url
+
+  > _Required_ **String** - The URL to POST to
+
+* sources
+
+  > _Optional_ **Object** - The body to POST
+
+### Return Value ###
+
+The observable sequence which contains the response from the Ajax POST.
+
+### Example ###
+
+	Rx.Observable.post('/test')
+		.subscribe(
+			function (xhr) {
+				console.log(xhr.responseText);
+			},
+			function (err) {
+				// Log the error
+			}
+		);
+
+## <a id="getJSONPRequest"></a>getJSONPRequest
+
+Creates a hot observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
+
+### Syntax ###
+
+This method has two versions, one with a string URL, the other with a settings object.
+
+	// With a string URL
+	Rx.Observable.getJSONPRequest(url);
+
+	// With a settings object
+	Rx.Observable.getJSONPRequest(settings);
+	
+### Parameters ###
+
+The parameters can be one of the following:
+
+* url
+
+  > **String** - A string of the URL to make the Ajax call.
+
+* settings
+
+  > **Object** - An object with the following properties
+  	
+		- url: URL of the request
+  		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
+  		- jsonp: The named callback parameter for the JSONP call
+
+### Return Value ###
+
+A hot observable containing the results from the JSONP call.
+
+### Example ###
+
+The following example uses a simple URL to retrieve a list of entries from Wikipedia. 
+
+	var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
+		+ '&format=json' 
+		+ '&search=reactive';
+
+	Rx.Observable.getJSONPRequest(url)
+		.subscribe( 
+			function (data) {
+				data[1].forEach(function (item) {
+					console.log(item);
+				});
+			},
+			function (error) {
+				// Log the error
+			}
+		);
+
+## <a id="getJSONPRequestCold"></a>getJSONPRequestCold
+
+Creates a cold observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
+
+### Syntax ###
+
+This method has two versions, one with a string URL, the other with a settings object.
+
+	// With a string URL
+	Rx.Observable.getJSONPRequest(url);
+
+	// With a settings object
+	Rx.Observable.getJSONPRequest(settings);
+	
+### Parameters ###
+
+The parameters can be one of the following:
+
+* url
+
+  > **String** - A string of the URL to make the Ajax call.
+
+* settings
+
+  > **Object** - An object with the following properties
+  	
+		- url: URL of the request
+  		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
+  		- jsonp: The named callback parameter for the JSONP call
+
+### Return Value ###
+
+A cold observable containing the results from the JSONP call.
+
+### Example ###
+
+The following example uses a simple URL to retrieve a list of entries from Wikipedia. 
+
+	var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
+		+ '&format=json' 
+		+ '&search=reactive';
+
+	Rx.Observable.getJSONPRequestCold(url)
+		.subscribe( 
+			function (data) {
+				data[1].forEach(function (item) {
+					console.log(item);
+				});
+			},
+			function (error) {
+				// Log the error
+			}
+		);
 
 ## LICENSE
 
-Copyright 2011 Microsoft Corporation
+Copyright 2013 MS Open Tech
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
