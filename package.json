@@ -2,7 +2,7 @@
   "name": "rx-dom",
   "title": "The Reactive Extensions Bindings for the DOM.",
   "description": "Library for using DOM elements as well as Ajax requests",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "homepage": "http://rx.codeplex.com",
   "author": {
     "name": "MS Open Tech",
@@ -30,6 +30,9 @@
     "grunt-contrib-qunit": "*",
     "grunt-contrib-watch": "*"
   },
+  "jam": {
+    "main": "rx.dom.js"
+  },  
   "keywords": [
     "Reactive",
     "FRP",
@@ -37,7 +40,14 @@
     "RxJS",
     "DOM",
     "Ajax",
-    "JSONP"
+    "JSONP",
+    "HTML5",
+    "requestAnimationFrame",
+    "WebSockets",
+    "WebWorkers"
   ],
-  "main": "ix.node.js"
+  "main": "rx.dom.node.js",
+  "scripts": {
+    "test": "grunt"
+  }  
 }

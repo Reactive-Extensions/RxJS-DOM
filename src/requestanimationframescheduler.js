@@ -1,0 +1,70 @@
+
+    // Get the right animation frame method
+    var requestAnimFrame, cancelAnimFrame;
+    if (window.requestAnimationFrame) {
+        requestAnimFrame = window.requestAnimationFrame;
+        cancelAnimFrame = window.cancelAnimationFrame;
+    } else if (window.mozRequestAnimationFrame) {
+        requestAnimFrame = window.mozRequestAnimationFrame;
+        cancelAnimFrame = window.mozCancelAnimationFrame;
+    } else if (window.webkitRequestAnimationFrame) {
+        requestAnimFrame = window.webkitRequestAnimationFrame;
+        cancelAnimFrame = window.webkitCancelAnimationFrame;
+    } else if (window.msRequestAnimationFrame) {
+        requestAnimFrame = window.msRequestAnimationFrame;
+        cancelAnimFrame = window.msCancelAnimationFrame;
+    } else if (window.oRequestAnimationFrame) {
+        requestAnimFrame = window.oRequestAnimationFrame;
+        cancelAnimFrame = window.oCancelAnimationFrame;       
+    } else {
+        requestAnimFrame = function(cb) { window.setTimeout(cb, 1000 / 60); };
+        cancelAnimFrame = window.clearTimeout;
+    }
+
+    /** 
+     * Gets a scheduler that schedules schedules work on the requestAnimationFrame for immediate actions.
+     *
+     * @memberOf Scheduler
+     */
+    Scheduler.requestAnimationFrameScheduler = (function () {
+
+        function defaultNow () { return new Date().getTime(); }
+
+        function scheduleNow(state, action) {
+            var scheduler = this,
+                disposable = new SingleAssignmentDisposable();
+            var id = requestAnimFrame(function () {
+                if (!disposable.isDisposed) {
+                    disposable.setDisposable(action(scheduler, state));
+                }
+            });
+            return new CompositeDisposable(disposable, disposableCreate(function () {
+                cancelAnimFrame(id);
+            }));
+        }
+
+        function scheduleRelative(state, dueTime, action) {
+            var scheduler = this,
+                dt = Scheduler.normalize(dueTime);
+            if (dt === 0) {
+                return scheduler.scheduleWithState(state, action);
+            }
+            var disposable = new SingleAssignmentDisposable();
+            var id = window.setTimeout(function () {
+                if (!disposable.isDisposed) {
+                    disposable.setDisposable(action(scheduler, state));
+                }
+            }, dt);
+            return new CompositeDisposable(disposable, disposableCreate(function () {
+                window.clearTimeout(id);
+            }));
+        }
+
+        function scheduleAbsolute(state, dueTime, action) {
+            return this.scheduleWithRelativeAndState(state, dueTime - this.now(), action);
+        }
+
+        return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);        
+
+    }());
+    

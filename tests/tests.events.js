@@ -1,6 +1,6 @@
 
 var TestScheduler = Rx.TestScheduler,
-    Observable = Rx.Observable;
+    DOM = Rx.DOM;
 
 /** Fake DOM Element */
 function FakeDOMStandardElement(nodeName) {
@@ -29,7 +29,7 @@ FakeDOMStandardElement.prototype.trigger = function (eventName, eventData) {
 test('Event_1', function () {
     var element = new FakeDOMStandardElement('foo');
 
-    var d = Observable.fromEvent(element, 'someEvent')
+    var d = DOM.fromEvent(element, 'someEvent')
         .subscribe(function (x) {
             equal(x, 42);
         });
@@ -46,7 +46,7 @@ test('Event_1', function () {
 test('Event_2', function () {
     var elements = [new FakeDOMStandardElement('foo')];
 
-    var d = Observable.fromEvent(elements, 'someEvent')
+    var d = DOM.fromEvent(elements, 'someEvent')
         .subscribe(function (x) {
             equal(x, 42);
         });
@@ -87,7 +87,7 @@ FakeDOMIEElement.prototype.trigger = function (eventName, eventData) {
 test('Event_3', function () {
     var element = new FakeDOMIEElement('foo');
 
-    var d = Observable.fromEvent(element, 'someevent')
+    var d = DOM.fromEvent(element, 'someevent')
         .subscribe(function (x) {
             equal(x, 42);
         });
@@ -104,7 +104,7 @@ test('Event_3', function () {
 test('Event_4', function () {
     var elements = [new FakeDOMIEElement('foo')];
 
-    var d = Observable.fromEvent(elements, 'someevent')
+    var d = DOM.fromEvent(elements, 'someevent')
         .subscribe(function (x) {
             equal(x, 42);
         });

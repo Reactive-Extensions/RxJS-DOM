@@ -54,13 +54,13 @@
      * Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
      *
      * @example
-     *   source = Rx.Observable.fromEvent(element, 'mouseup');
+     *   source = Rx.DOM.fromEvent(element, 'mouseup');
      * 
      * @param {Object} element The DOMElement or NodeList to attach a listener.
      * @param {String} eventName The event name to attach the observable sequence.
      * @returns {Observable} An observable sequence of events from the specified element and the specified event.
      */
-    Observable.fromEvent = function (element, eventName) {
+    dom.fromEvent = function (element, eventName) {
         return observableCreateWithDisposable(function (observer) {
             return createEventListener(element, eventName, function handler (e) { observer.onNext(e); });
         });

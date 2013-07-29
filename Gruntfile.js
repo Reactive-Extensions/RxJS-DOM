@@ -27,6 +27,9 @@ module.exports = function (grunt) {
                     'src/events.js',
                     'src/ajax.js',
                     'src/jsonp.js',
+                    'src/websocket.js',
+                    'src/webworker.js',
+                    'src/mutationobserver.js',
                     'src/outro.js'
                 ],
                 dest: 'rx.dom.js'

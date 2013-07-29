@@ -31,9 +31,14 @@
     var Rx = window.Rx,
         Observable = Rx.Observable,
         observableProto = Observable.prototype,
+        observableCreate = Observable.create,
         observableCreateWithDisposable = Observable.createWithDisposable,
         disposableCreate = Rx.Disposable.create,
-        CompositeDisposable = Rx.CompositeDisposable;
+        CompositeDisposable = Rx.CompositeDisposable,
+        Subject = Rx.Subject,
+        Scheduler = Rx.Scheduler,
+        dom = Rx.DOM = {},
+        ajax = Rx.DOM.Request = {};
 
     /** @private
      * Creates an event listener on a single element with compat back to DOM Level 1.
@@ -91,18 +96,18 @@
      * Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
      *
      * @example
-     *   source = Rx.Observable.fromEvent(element, 'mouseup');
+     *   source = Rx.DOM.fromEvent(element, 'mouseup');
      * 
      * @param {Object} element The DOMElement or NodeList to attach a listener.
      * @param {String} eventName The event name to attach the observable sequence.
      * @returns {Observable} An observable sequence of events from the specified element and the specified event.
      */
-    Observable.fromEvent = function (element, eventName) {
+    dom.fromEvent = function (element, eventName) {
         return observableCreateWithDisposable(function (observer) {
             return createEventListener(element, eventName, function handler (e) { observer.onNext(e); });
         });
     };
-    
+
     /* @private 
      * Gets the proper XMLHttpRequest for support for older IE 
      */
@@ -122,8 +127,8 @@
      * Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
      *
      * @example 
-     *   source = Rx.Observable.ajaxCold('/products');
-     *   source = Rx.Observable.ajaxCold( url: 'products', method: 'GET' });
+     *   source = Rx.DOM.Request.ajaxCold('/products');
+     *   source = Rx.DOM.Request.ajaxCold( url: 'products', method: 'GET' });
      *     
      * @param {Object} settings Can be one of the following:
      *
@@ -136,7 +141,7 @@
      *
      * @returns {Observable} An observable sequence containing the XMLHttpRequest.
     */
-    Observable.ajaxCold = function (settings) {
+    ajax.ajaxCold = function (settings) {
         return observableCreateWithDisposable( function (observer) {
             if (typeof settings === 'string') {
                 settings = { method: 'GET', url: settings, async: true };
@@ -198,14 +203,14 @@
     };
 
     /** @private */
-    var ajaxCold = Observable.ajaxCold;
+    var ajaxCold = ajax.ajaxCold;
 
     /**
      * Creates a hot observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
      *
      * @example 
-     *   source = Rx.Observable.ajax('/products');
-     *   source = Rx.Observable.ajax( url: 'products', method: 'GET' });
+     *   source = Rx.DOM.Request.ajax('/products');
+     *   source = Rx.DOM.Request.ajax( url: 'products', method: 'GET' });
      *
      * @param {Object} settings Can be one of the following:
      *
@@ -218,7 +223,7 @@
      *
      * @returns {Observable} An observable sequence containing the XMLHttpRequest.
     */
-    var observableAjax = Observable.ajax = function (settings) {
+    var observableAjax = ajax.ajax = function (settings) {
         return ajaxCold(settings).publishLast().refCount();
     };
 
@@ -229,7 +234,7 @@
      * @param {Object} body The body to POST
      * @returns {Observable} The observable sequence which contains the response from the Ajax POST.
      */
-    Observable.post = function (url, body) {
+    ajax.post = function (url, body) {
         return observableAjax({ url: url, body: body, method: 'POST', async: true });
     };
     
@@ -239,18 +244,18 @@
      * @param {String} url The URL to GET
      * @returns {Observable} The observable sequence which contains the response from the Ajax GET.
      */   
-    var observableGet = Observable.get = function (url) {
+    var observableGet = ajax.get = function (url) {
         return observableAjax({ url: url, method: 'GET', async: true });
     };
     
-    if (JSON && JSON.parse) {
+    if (JSON && typeof JSON.parse === 'function') {
         /**
          * Creates an observable sequence from JSON from an Ajax request
          *
          * @param {String} url The URL to GET
          * @returns {Observable} The observable sequence which contains the parsed JSON.
          */       
-        Observable.getJSON = function (url) {
+        ajax.getJSON = function (url) {
             return observableGet(url).select(function (xhr) {
                 return JSON.parse(xhr.responseText);
             });
@@ -272,8 +277,8 @@
      * Creates a cold observable JSONP Request with the specified settings.
      *
      * @example 
-     *   source = Rx.Observable.getJSONPRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
-     *   source = Rx.Observable.getJSONPRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
+     *   source = Rx.DOM.Request.jsonpRequestCold('http://www.bing.com/?q=foo&JSONPRequest=?');
+     *   source = Rx.DOM.Request.jsonpRequestCold( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
      *
      * @param {Object} settings Can be one of the following:
      *
@@ -284,7 +289,7 @@
      *
      * @returns {Observable} A cold observable containing the results from the JSONP call.
      */
-    Observable.getJSONPRequestCold = (function () {
+    ajax.jsonpRequestCold = (function () {
         var uniqueId = 0;
         return function (settings) {
             return Observable.createWithDisposable(function (observer) {
@@ -326,14 +331,12 @@
                     if (!tag) {
                         return;
                     }
-                    if (!/loaded|complete/.test(tag.readyState)) {
-                        tag.onload = tag.onreadystatechange = null;
-                        if (head && tag.parentNode) {
-                            destroy(tag);
-                        }
-                        tag = undefined;
-                        window[handler] = undefined;
+                    tag.onload = tag.onreadystatechange = null;
+                    if (head && tag.parentNode) {
+                        destroy(tag);
                     }
+                    tag = undefined;
+                    window[handler] = undefined;
                 });
             });
         };      
@@ -341,14 +344,14 @@
     })();
 
     /** @private */
-    var getJSONPRequestCold = Observable.getJSONPRequestCold;
+    var getJSONPRequestCold = ajax.jsonpRequestCold;
 
     /**
      * Creates a hot observable JSONP Request with the specified settings.
      *
      * @example 
-     *   source = Rx.Observable.getJSONPRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
-     *   source = Rx.Observable.getJSONPRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
+     *   source = Rx.DOM.Request.getJSONPRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
+     *   source = Rx.DOM.Request.getJSONPRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
      * 
      * @param {Object} settings Can be one of the following:
      *
@@ -359,8 +362,127 @@
      *
      * @returns {Observable} A hot observable containing the results from the JSONP call.
      */
-    Observable.getJSONPRequest = function (settings) {
+    ajax.jsonpRequest = function (settings) {
         return getJSONPRequestCold(settings).publishLast().refCount();
     };
+    if (window.WebSocket) {
+         /**
+         * Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
+         * 
+         * @example
+         *  var socket = Rx.DOM.fromWebSocket('http://localhost:8080', 'stock-protocol', function(e) { ... });
+         *  var socket = Rx.DOM.fromWebSocket('http://localhost:8080', 'stock-protocol', observer);
+         *s
+         * @param {String} url The URL of the WebSocket.
+         * @param {String} protocol The protocol of the WebSocket.
+         * @param {Function|Observer} [observerOrOnNext] An optional Observer or onNext function to capture the open event.
+         * @returns {Subject} An observable sequence wrapping a WebSocket.
+         */
+        dom.fromWebSocket = function (url, protocol, observerOrOnNext) {
+            var socket = new window.WebSocket(url, protocol);
+
+            var observable = observableCreate(function (obs) {
+                if (observerOrOnNext) {
+                    socket.onopen = function (openEvent) {
+                        if (typeof observerOrOnNext === 'function') {
+                            observerOrOnNext(openEvent);
+                        } else if (observerOrOnNext.onNext) {
+                            observerOrOnNext.onNext(openEvent);
+                        }
+                    };
+                }
+
+                socket.onmessage = function (data) {
+                    obs.onNext(data);
+                };
+
+                socket.onerror = function (err) {
+                    obs.onError(err);
+                };
+
+                socket.onclose = function () {
+                    obs.onCompleted();
+                };
+
+                return function () {
+                    socket.close();
+                };
+            });
+
+            var observer = observerCreate(function (data) {
+                if (socket.readyState === WebSocket.OPEN) {
+                    socket.send(data);
+                }
+            });
+
+            return Subject.create(observer, observable);
+        };       
+    }
+
+
+    if (window.Worker) {
+        /**
+         * Creates a Web Worker with a given URL as a Subject.
+         * 
+         * @example
+         * var worker = Rx.DOM.fromWebWorker('worker.js');
+         *
+         * @param {String} url The URL of the Web Worker.
+         * @returns {Subject} A Subject wrapping the Web Worker.
+         */
+        dom.fromWebWorker = function (url) {
+            var worker = new window.Worker(url);
+
+            var observable = observableCreateWithDisposable(function (obs) {
+                worker.onmessage = function (data) {
+                    obs.onNext(data);
+                };
+
+                worker.onerror = function (err) {
+                    obs.onError(err);
+                };
+
+                return disposableCreate(function () {
+                    worker.close();
+                });
+            });
+
+            var observer = observerCreate(function (data) {
+                worker.postMessage(data);
+            });
+
+            return Subject.create(observer, observable);
+        };      
+    }
+
+    if (window.MutationObserver) {
+
+        /**
+         * Creates an observable sequence from a Mutation Observer.
+         * MutationObserver provides developers a way to react to changes in a DOM.
+         * @example
+         *  Rx.DOM.fromMutationObserver(document.getElementById('foo'), { attributes: true, childList: true, characterData: true });
+         *
+         * @param {Object} target The Node on which to obserave DOM mutations.
+         * @param {Object} options A MutationObserverInit object, specifies which DOM mutations should be reported.
+         * @returns {Observable} An observable sequence which contains mutations on the given DOM target.
+         */
+        dom.fromMutationObserver = function (target, options) {
+
+            return observableCreate(function (observer) {
+                var mutationObserver = new MutationObserver(function (mutations) {
+                    observer.onNext(mutations);
+                });
+
+                mutationObserver.observe(target, options);
+
+                return function () {
+                    mutationObserver.disconnect();
+                };
+            });
+
+        };
+
+    }
     return Rx;
 }));

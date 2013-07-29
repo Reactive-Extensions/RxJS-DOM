@@ -1,4 +1,4 @@
-    
+
     /* @private 
      * Gets the proper XMLHttpRequest for support for older IE 
      */
@@ -18,8 +18,8 @@
      * Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
      *
      * @example 
-     *   source = Rx.Observable.ajaxCold('/products');
-     *   source = Rx.Observable.ajaxCold( url: 'products', method: 'GET' });
+     *   source = Rx.DOM.Request.ajaxCold('/products');
+     *   source = Rx.DOM.Request.ajaxCold( url: 'products', method: 'GET' });
      *     
      * @param {Object} settings Can be one of the following:
      *
@@ -32,7 +32,7 @@
      *
      * @returns {Observable} An observable sequence containing the XMLHttpRequest.
     */
-    Observable.ajaxCold = function (settings) {
+    ajax.ajaxCold = function (settings) {
         return observableCreateWithDisposable( function (observer) {
             if (typeof settings === 'string') {
                 settings = { method: 'GET', url: settings, async: true };
@@ -94,14 +94,14 @@
     };
 
     /** @private */
-    var ajaxCold = Observable.ajaxCold;
+    var ajaxCold = ajax.ajaxCold;
 
     /**
      * Creates a hot observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
      *
      * @example 
-     *   source = Rx.Observable.ajax('/products');
-     *   source = Rx.Observable.ajax( url: 'products', method: 'GET' });
+     *   source = Rx.DOM.Request.ajax('/products');
+     *   source = Rx.DOM.Request.ajax( url: 'products', method: 'GET' });
      *
      * @param {Object} settings Can be one of the following:
      *
@@ -114,7 +114,7 @@
      *
      * @returns {Observable} An observable sequence containing the XMLHttpRequest.
     */
-    var observableAjax = Observable.ajax = function (settings) {
+    var observableAjax = ajax.ajax = function (settings) {
         return ajaxCold(settings).publishLast().refCount();
     };
 
@@ -125,7 +125,7 @@
      * @param {Object} body The body to POST
      * @returns {Observable} The observable sequence which contains the response from the Ajax POST.
      */
-    Observable.post = function (url, body) {
+    ajax.post = function (url, body) {
         return observableAjax({ url: url, body: body, method: 'POST', async: true });
     };
     
@@ -135,18 +135,18 @@
      * @param {String} url The URL to GET
      * @returns {Observable} The observable sequence which contains the response from the Ajax GET.
      */   
-    var observableGet = Observable.get = function (url) {
+    var observableGet = ajax.get = function (url) {
         return observableAjax({ url: url, method: 'GET', async: true });
     };
     
-    if (JSON && JSON.parse) {
+    if (JSON && typeof JSON.parse === 'function') {
         /**
          * Creates an observable sequence from JSON from an Ajax request
          *
          * @param {String} url The URL to GET
          * @returns {Observable} The observable sequence which contains the parsed JSON.
          */       
-        Observable.getJSON = function (url) {
+        ajax.getJSON = function (url) {
             return observableGet(url).select(function (xhr) {
                 return JSON.parse(xhr.responseText);
             });

@@ -8,6 +8,11 @@
     var Rx = window.Rx,
         Observable = Rx.Observable,
         observableProto = Observable.prototype,
+        observableCreate = Observable.create,
         observableCreateWithDisposable = Observable.createWithDisposable,
         disposableCreate = Rx.Disposable.create,
-        CompositeDisposable = Rx.CompositeDisposable;
+        CompositeDisposable = Rx.CompositeDisposable,
+        Subject = Rx.Subject,
+        Scheduler = Rx.Scheduler,
+        dom = Rx.DOM = {},
+        ajax = Rx.DOM.Request = {};
