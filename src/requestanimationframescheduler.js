@@ -49,14 +49,24 @@
             if (dt === 0) {
                 return scheduler.scheduleWithState(state, action);
             }
-            var disposable = new SingleAssignmentDisposable();
-            var id = window.setTimeout(function () {
-                if (!disposable.isDisposed) {
-                    disposable.setDisposable(action(scheduler, state));
+
+            var disposable = new SingleAssignmentDisposable(),
+                id;
+            var scheduleFunc = function () {
+                if (id) { cancelAnimFrame(id); }
+                if (dt - scheduler.now() <= 0) {
+                    if (!disposable.isDisposed) {
+                        disposable.setDisposable(action(scheduler, state));
+                    }
+                } else {
+                    requestAnimFrame(scheduleFunc);
                 }
-            }, dt);
+            };
+
+            id = requestAnimFrame(scheduleFunc);
+
             return new CompositeDisposable(disposable, disposableCreate(function () {
-                window.clearTimeout(id);
+                cancelAnimFrame(id);
             }));
         }
 
