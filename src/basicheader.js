@@ -12,6 +12,7 @@
         observableCreateWithDisposable = Observable.createWithDisposable,
         disposableCreate = Rx.Disposable.create,
         CompositeDisposable = Rx.CompositeDisposable,
+        SingleAssignmentDisposable = Rx.SingleAssignmentDisposable,
         Subject = Rx.Subject,
         Scheduler = Rx.Scheduler,
         dom = Rx.DOM = {},
