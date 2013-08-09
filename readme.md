@@ -155,6 +155,7 @@ Mutation Observers
 Schedulers
 
 - [`Rx.Schedulers.requestAnimationFrameScheduler`](#requestAnimationFrameScheduler)
+- [`Rx.Schedulers.mutationObserverScheduler`](#mutationObserverScheduler)
 
 ***
 
@@ -645,7 +646,26 @@ Gets a scheduler that schedules schedules work on the `window.requestAnimationFr
 		console.log(x);
 	});
 
-// => 42
+	// => 42
+
+***
+
+## <a id="mutationObserverScheduler"></a>`Rx.Scheduler.mutationObserverScheduler`
+
+Gets a scheduler that schedules schedules work on the `window.MutationObserver` for immediate actions.
+
+### Example ###
+
+	var obs = Rx.Observable.return(
+		42, 
+		Rx.Scheduler.mutationObserverScheduler);
+
+	obs.subscribe(function (x) {
+		// Scheduled using a MutationObserver
+		console.log(x);
+	});
+
+	// => 42
 
 ***
 

@@ -1,6 +1,6 @@
 {
   "name": "Rx-DOM",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "main": "rx.dom.js",
   "dependencies": {
     "rx": "*"

@@ -2,7 +2,7 @@
   "name": "rx-dom",
   "title": "The Reactive Extensions Bindings for the DOM.",
   "description": "Library for using DOM elements as well as Ajax requests",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "homepage": "http://rx.codeplex.com",
   "author": {
     "name": "MS Open Tech",
