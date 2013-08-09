@@ -30,6 +30,8 @@ module.exports = function (grunt) {
                     'src/websocket.js',
                     'src/webworker.js',
                     'src/mutationobserver.js',
+                    'src/requestanimationframescheduler',
+                    'src/mutationobserverscheduler',
                     'src/outro.js'
                 ],
                 dest: 'rx.dom.js'

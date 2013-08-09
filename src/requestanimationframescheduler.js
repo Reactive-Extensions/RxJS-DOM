@@ -59,7 +59,7 @@
                         disposable.setDisposable(action(scheduler, state));
                     }
                 } else {
-                    requestAnimFrame(scheduleFunc);
+                    id = requestAnimFrame(scheduleFunc);
                 }
             };
 
