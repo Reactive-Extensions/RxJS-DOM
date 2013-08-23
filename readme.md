@@ -6,7 +6,7 @@ This project provides Reactive Extensions for JavaScript (RxJS) bindings for HTM
 
 ## GETTING STARTED
 
-There are a number of ways to get started with the HTML DOM Bindings for RxJS.  
+There are a number of ways to get started with the HTML DOM Bindings for RxJS.  The files are available on [cdnjs](http://cdnjs.com/) and [jsDelivr](http://www.jsdelivr.com/#!rxjs-dom).
 
 ### Download the Source
 
@@ -15,9 +15,17 @@ To download the source of the HTML DOM Bindings for the Reactive Extensions for 
     git clone https://github.com/Reactive-Extensions/rxjs-dom.git
     cd ./rxjs-dom
 
-### Installing with NPM
+### Installing with [NPM](https://npmjs.org/)
 
-	npm install rx-dom
+	npm install rx-jquery
+
+### Installing with [Bower](http://bower.io/)
+
+	bower install rx-jquery
+
+### Installing with [Jam](http://jamjs.org/)
+	
+	jam install rx-jquery
 
 ### Getting Started with the HTML DOM Bindings
 
