@@ -27,6 +27,10 @@ To download the source of the HTML DOM Bindings for the Reactive Extensions for 
 	
 	jam install rx-jquery
 
+### Installing with NuGet
+
+	PM> Install-Package RxJS-Bridges-HTML	
+
 ### Getting Started with the HTML DOM Bindings
 
 Let's walk through a simple yet powerful example of the Reactive Extensions for JavaScript Bindings for HTML, autocomplete.  In this example, we will take user input from a textbox and trim and throttle the input so that we're not overloading the server with requests for suggestions.
@@ -50,19 +54,19 @@ The goal here is to take the input from our textbox and throttle it in a way tha
 	var textInput = document.getElementById('textInput');
 	var throttledInput = Rx.DOM.fromEvent(textInput, 'keyup');
 
-Since we're only interested in the text, we'll use the [`select`]((http://msdn.microsoft.com/en-us/library/hh244311\(v=VS.103\).aspx)) or `map` method to take the event object and return the target's value.  
+Since we're only interested in the text, we'll use the `select` or `map` method to take the event object and return the target's value.  
 
 		.select( function (ev) {
 			return textInput.value;
 		})
 
-We're also not interested in query terms less than two letters, so we'll trim that user input by using the [`where`]((http://msdn.microsoft.com/en-us/library/hh229267\(v=VS.103\).aspx)) or `filter` method returning whether the string length is appropriate.
+We're also not interested in query terms less than two letters, so we'll trim that user input by using the `where` or `filter` method returning whether the string length is appropriate.
 
 		.where( function (text) {
 			return text.length > 2;
 		})
 
-We also want to slow down the user input a little bit so that the external service won't be flooded with requests.  To do that, we'll use the [`throttle`](http://msdn.microsoft.com/en-us/library/hh229298\(v=VS.103\).aspx) method with a timeout of 500 milliseconds, which will ignore your fast typing and only return a value after you have paused for that time span.  
+We also want to slow down the user input a little bit so that the external service won't be flooded with requests.  To do that, we'll use the `throttle` method with a timeout of 500 milliseconds, which will ignore your fast typing and only return a value after you have paused for that time span.  
 
 		.throttle(500)
 
@@ -72,61 +76,70 @@ Lastly, we only want distinct values in our input stream, so we can ignore reque
 
 Putting it all together, our throttledInput looks like the following:
 
-	var textInput = document.getElementById('textInput');
-	var throttledInput = Rx.DOM.fromEvent(textInput, 'keyup')
-		.select( function (ev) {
-			return textInput.value;
-		})
-		.where( function (text) {
-			return text.length > 2;
-		})
-		.throttle(500)
-		.distinctUntilChanged();
+```js
+var textInput = document.getElementById('textInput');
+var throttledInput = Rx.DOM.fromEvent(textInput, 'keyup')
+	.select( function (ev) {
+		return textInput.value;
+	})
+	.where( function (text) {
+		return text.length > 2;
+	})
+	.throttle(500)
+	.distinctUntilChanged();
+```
 
 Now that we have the throttled input from the textbox, we need to query our service, in this case, the Wikipedia API, for suggestions based upon our input.  To do this, we'll create a function called searchWikipedia which calls the `Rx.DOM.Request.jsonpRequest` method which wraps making a JSONP call.
 
-	function searchWikipedia(term) {
-		var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
-			+ '&format=json' 
-			+ '&search=' + encodeURI(term);
-		return Rx.DOM.Ajax.jsonpRequest(url);
-	}
+```js
+function searchWikipedia(term) {
+	var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
+		+ '&format=json' 
+		+ '&search=' + encodeURI(term);
+	return Rx.DOM.Ajax.jsonpRequest(url);
+}
+```
 
-Now that the Wikipedia Search has been wrapped, we can tie together throttled input and our service call.  In this case, we will call select on the throttledInput to then take the text from our textInput and then use it to query Wikipedia, filtering out empty records.  Finally, to deal with concurrency issues, we'll need to ensure we're getting only the latest value.  Issues can arise with asynchronous programming where an earlier value, if not cancelled properly, can be returned before the latest value is returned, thus causing bugs.  To ensure that this doesn't happen, we have the [`switchLatest`]((http://msdn.microsoft.com/en-us/library/hh229197(v=VS.103).aspx)) method which returns only the latest value.
+Now that the Wikipedia Search has been wrapped, we can tie together throttled input and our service call.  In this case, we will call select on the throttledInput to then take the text from our textInput and then use it to query Wikipedia, filtering out empty records.  Finally, to deal with concurrency issues, we'll need to ensure we're getting only the latest value.  Issues can arise with asynchronous programming where an earlier value, if not cancelled properly, can be returned before the latest value is returned, thus causing bugs.  To ensure that this doesn't happen, we have the `switch` method which returns only the latest value.
 
-	var suggestions = throttledInput.select( function (text) {
- 		return searchWikipedia(text);
-	})
-	.where( function (data) {
-		return data.length == 2 && data[1].length > 0;
-	})
-	.switchLatest();
+```js
+var suggestions = throttledInput.select( function (text) {
+		return searchWikipedia(text);
+})
+.where( function (data) {
+	return data.length == 2 && data[1].length > 0;
+})
+.switch();
+```
 
 Finally, we'll subscribe to our observable by calling subscribe which will receive the results and put them into an unordered list.  We'll also handle errors, for example if the server is unavailable by passing in a second function which handles the errors.
 
-	var resultList = document.getElementById('results');
-	var clearSelector = function (element) {
-        while (element.firstChild) {
-            element.removeChild(element.firstChild);
-        }
-	};
+```js
+var resultList = document.getElementById('results');
+var clearSelector = function (element) {
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+};
 
-	suggestions.subscribe( function (data) {
-        var results = data[1];
+suggestions.subscribe( function (data) {
+    var results = data[1];
 
-        clearSelector(resultList);
+    clearSelector(resultList);
 
-        for (var i = 0; i < results.length; i++) {
-            var li = document.createElement('li');
-            li.innerHTML = results[i];
-            resultList.appendChild(li);
-        }
-	}, function (e) {
-		clearSelector(resultList);
+    for (var i = 0; i < results.length; i++) {
         var li = document.createElement('li');
-        li.innerHTML = 'Error: ' + e;
+        li.innerHTML = results[i];
         resultList.appendChild(li);
-	});
+    }
+}, function (e) {
+	clearSelector(resultList);
+    var li = document.createElement('li');
+    li.innerHTML = 'Error: ' + e;
+    resultList.appendChild(li);
+});
+
+```
 
 We've only scratched the surface of this library in this simple example.
 		
@@ -171,45 +184,41 @@ Schedulers
 
 Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
 
-### Syntax ###
+#### Syntax
 
-	Rx.Observable.fromEvent(element, eventName);
+```js
+Rx.Observable.fromEvent(element, eventName);
+```
 
-### Parameters ###
+#### Arguments
+1. `element` *(Node|NodeList)*: The DOMElement or NodeList to attach a listener.
+2. `eventName` *(String)*: The event name to attach the observable sequence.
 
-* element
+#### Returns
+*(Observable)*: An observable sequence of events from the specified element and the specified event.  
 
-  > _Required_ **Object** - The DOMElement or NodeList to attach a listener.
-
-* eventName
-
-  > _Required_ **String** - The event name to attach the observable sequence.
-
-### Return Value ###
-
-An observable sequence of events from the specified element and the specified event.  
-
-### Example ###
+#### Example
 
 The following example demonstrates attaching to a text input and listening to the keyup event.
+```js
+// Get the element
+var el = document.getElementById('text1');
 
-	// Get the element
-	var el = document.getElementById('text1');
+// Attach to the keyup event
+var obs = Rx.DOM.fromEvent(el, 'keyup')
+	.subscribe( function (e) {
+		// Write the keycode
+		console.log(e.keyCode);
+	});
+```
 
-	// Attach to the keyup event
-	var obs = Rx.DOM.fromEvent(el, 'keyup')
-		.subscribe( function (e) {
-			// Write the keycode
-			console.log(e.keyCode);
-		});
-
-***
+* * *
 
 ## <a id="ajax"></a>`Rx.DOM.Request.ajax`
 
 Creates a hot observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
 
-### Syntax ###
+#### Syntax
 
 	// Using string URL
 	Rx.DOM.Request.ajax(url);
@@ -217,465 +226,389 @@ Creates a hot observable for an Ajax request with either a settings object with 
 	// Using settings object
 	Rx.DOM.Request.ajax(settings);
 
-### Parameters ###
-
-The parameters can be one of the following:
-
-* url
-
-  > **String** - A string of the URL to make the Ajax call.
-
-* settings
-
-  > **Object** - An object with the following properties
+#### Arguments
+1. `url` *(String)*: A string of the URL to make the Ajax call.
+1. `settings` *(Object)*: An object with the following properties
   	
 		- url: URL of the request
   		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
   		- async: Whether the request is async
   		- headers: Optional headers
 
-### Return Value ###
+#### Returns
+*(Observable)*: An observable sequence containing the `XMLHttpRequest`.
 
-An observable sequence containing the `XMLHttpRequest`.
-
-### Example ###
+#### Example 
 
 The following example uses a simple URL to retrieve a list of products. 
+```js
+Rx.DOM.Request.ajax('/products')
+	.subscribe( 
+		function (xhr) {
 
-	Rx.DOM.Request.ajax('/products')
-		.subscribe( 
-			function (xhr) {
+			var products = JSON.parse(xhr.responseText);
 
-				var products = JSON.parse(xhr.responseText);
-	
-				products.forEach(function (product) {
-					console.log(product);
-				});
-			},
-			function (error) {
-				// Log the error
-			}
-		);
-
-***
+			products.forEach(function (product) {
+				console.log(product);
+			});
+		},
+		function (error) {
+			// Log the error
+		}
+	);
+```
+* * *
 
 ## <a id="ajaxCold"></a>`Rx.DOM.Request.ajaxCold`
 
 Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
 
-### Syntax ###
+#### Syntax
+```js
+// Using string URL
+Rx.DOM.Request.ajaxCold(url);
 
-	// Using string URL
-	Rx.DOM.Request.ajaxCold(url);
-
-	// Using settings object
-	Rx.DOM.Request.ajaxCold(settings);
-
-### Parameters ###
-
-The parameters can be one of the following:
-
-* url
-
-  > **String** - A string of the URL to make the Ajax call.
-
-* settings
-
-  > **Object** - An object with the following properties
+// Using settings object
+Rx.DOM.Request.ajaxCold(settings);
+```
+#### Arguments
+1. `url` *(String)*: A string of the URL to make the Ajax call.
+1. `settings` *(Object)*: An object with the following properties
   	
 		- url: URL of the request
   		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
   		- async: Whether the request is async
   		- headers: Optional headers
 
-### Return Value ###
+#### Returns
+*(Observable)*: An observable sequence containing the `XMLHttpRequest`.
 
-An observable sequence containing the `XMLHttpRequest`.
-
-### Example ###
+#### Example
 
 The following example uses a simple URL to retrieve a list of products. 
+```js
+Rx.DOM.Request.ajaxCold('/products')
+	.subscribe( 
+		function (xhr) {
 
-	Rx.DOM.Request.ajaxCold('/products')
-		.subscribe( 
-			function (xhr) {
+			var products = JSON.parse(xhr.responseText);
 
-				var products = JSON.parse(xhr.responseText);
-	
-				products.forEach(function (product) {
-					console.log(product);
-				});
-			},
-			function (error) {
-				// Log the error
-			}
-		);
-
-***
+			products.forEach(function (product) {
+				console.log(product);
+			});
+		},
+		function (error) {
+			// Log the error
+		}
+	);
+```
+* * *
 
 ## <a id="get"></a>`Rx.DOM.Request.get`
 
 Creates an observable sequence from an Ajax GET Request with the body.  This method is just shorthand for the `Rx.DOM.Request.ajax` method with the GET method.
 
-### Syntax ###
+#### Syntax
+```js
+Rx.DOM.Request.get(url);
+```
+#### Arguments
+1. `url` *(String)*: A string of the URL to make the Ajax call.
 
-	Rx.DOM.Request.get(url);
+#### Returns
+*(Observable)*: The observable sequence which contains the response from the Ajax GET.
 
-### Parameters ###
-
-* url
-
-  > _Required_ **String** - The URL to GET
-
-### Return Value ###
-
-The observable sequence which contains the response from the Ajax GET.
-
-### Example ###
-
-	Rx.DOM.Request.get('/products')
-		.subscribe(
-			function (xhr) {
-				var text = xhr.responseText;
-				console.log(text);
-			},
-			function (err) {
-				// Log the error
-			}
-		);
-
-***
+#### Example
+```js
+Rx.DOM.Request.get('/products')
+	.subscribe(
+		function (xhr) {
+			var text = xhr.responseText;
+			console.log(text);
+		},
+		function (err) {
+			// Log the error
+		}
+	);
+```
+* * *
 
 ## <a id="post"></a>`Rx.DOM.Request.post`
 
 Creates an observable sequence from an Ajax POST Request with the body.  This method is just shorthand for the `Rx.DOM.Request.ajax` method with the POST method.
 
-### Syntax ###
+#### Syntax
+```js
+Rx.DOM.Request.post(url, body);
+```
+#### Arguments
+1. `url` *(String)*: A string of the URL to make the Ajax call.
 
-	Rx.DOM.Request.post(url, body);
+#### Returns
+*(Observable)*: The observable sequence which contains the response from the Ajax POST.
 
-### Parameters ###
-
-* url
-
-  > _Required_ **String** - The URL to POST to
-
-* sources
-
-  > _Optional_ **Object** - The body to POST
-
-### Return Value ###
-
-The observable sequence which contains the response from the Ajax POST.
-
-### Example ###
-
-	Rx.DOM.Request.post('/test')
-		.subscribe(
-			function (xhr) {
-				console.log(xhr.responseText);
-			},
-			function (err) {
-				// Log the error
-			}
-		);
-
+#### Example
+```js
+Rx.DOM.Request.post('/test')
+	.subscribe(
+		function (xhr) {
+			console.log(xhr.responseText);
+		},
+		function (err) {
+			// Log the error
+		}
+	);
+```
 ***
 
 ## <a id="getJSONPRequest"></a>`Rx.DOM.Request.jsonpRequest`
 
 Creates a hot observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
 
-### Syntax ###
+#### Syntax
 
 This method has two versions, one with a string URL, the other with a settings object.
+```js
+// With a string URL
+Rx.DOM.Request.jsonpRequest(url);
 
-	// With a string URL
-	Rx.DOM.Request.jsonpRequest(url);
-
-	// With a settings object
-	Rx.DOM.Request.jsonpRequest(settings);
-	
-### Parameters ###
-
-The parameters can be one of the following:
-
-* url
-
-  > **String** - A string of the URL to make the Ajax call.
-
-* settings
-
-  > **Object** - An object with the following properties
-  	
+// With a settings object
+Rx.DOM.Request.jsonpRequest(settings);
+```
+#### Arguments
+1. `url` *(String)*: A string of the URL to make the JSONP call.
+1. `settings` *(Object)*: An object with the following properties:
 		- url: URL of the request
-  		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
   		- jsonp: The named callback parameter for the JSONP call
 
-### Return Value ###
+#### Returns
+*(Observable)*: A hot observable containing the results from the JSONP call.
 
-A hot observable containing the results from the JSONP call.
-
-### Example ###
+#### Example
 
 The following example uses a simple URL to retrieve a list of entries from Wikipedia. 
 
-	var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
-		+ '&format=json' 
-		+ '&search=reactive';
+```js
+var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
+	+ '&format=json' 
+	+ '&search=reactive';
 
-	Rx.DOM.Request.jsonpRequest(url)
-		.subscribe( 
-			function (data) {
-				data[1].forEach(function (item) {
-					console.log(item);
-				});
-			},
-			function (error) {
-				// Log the error
-			}
-		);
+Rx.DOM.Request.jsonpRequest(url)
+	.subscribe( 
+		function (data) {
+			data[1].forEach(function (item) {
+				console.log(item);
+			});
+		},
+		function (error) {
+			// Log the error
+		}
+	);
+```
 
-***
+* * *
 
 ## <a id="getJSONPRequestCold"></a>`Rx.DOM.Request.jsonpRequestCold`
 
 Creates a cold observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
 
-### Syntax ###
+#### Syntax
 
 This method has two versions, one with a string URL, the other with a settings object.
+```js
+// With a string URL
+Rx.DOM.Request.jsonpRequestCold(url);
 
-	// With a string URL
-	Rx.DOM.Request.jsonpRequestCold(url);
-
-	// With a settings object
-	Rx.DOM.Request.jsonpRequestCold(settings);
-	
-### Parameters ###
-
-The parameters can be one of the following:
-
-* url
-
-  > **String** - A string of the URL to make the Ajax call.
-
-* settings
-
-  > **Object** - An object with the following properties
-  	
+// With a settings object
+Rx.DOM.Request.jsonpRequestCold(settings);
+```
+#### Arguments
+1. `url` *(String)*: A string of the URL to make the JSONP call.
+1. `settings` *(Object)*: An object with the following properties:
 		- url: URL of the request
-  		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
   		- jsonp: The named callback parameter for the JSONP call
 
-### Return Value ###
+#### Returns
+*(Observable)*: A cold observable containing the results from the JSONP call.
 
-A cold observable containing the results from the JSONP call.
-
-### Example ###
+#### Example
 
 The following example uses a simple URL to retrieve a list of entries from Wikipedia. 
+```js
+var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
+	+ '&format=json' 
+	+ '&search=reactive';
 
-	var url = 'http://en.wikipedia.org/w/api.php?action=opensearch'
-		+ '&format=json' 
-		+ '&search=reactive';
-
-	Rx.DOM.Request.jsonpRequestCold(url)
-		.subscribe( 
-			function (data) {
-				data[1].forEach(function (item) {
-					console.log(item);
-				});
-			},
-			function (error) {
-				// Log the error
-			}
-		);
-
-***
+Rx.DOM.Request.jsonpRequestCold(url)
+	.subscribe( 
+		function (data) {
+			data[1].forEach(function (item) {
+				console.log(item);
+			});
+		},
+		function (error) {
+			// Log the error
+		}
+	);
+```
+* * *
 
 ## <a id="fromWebSocket"></a>`Rx.DOM.fromWebSocket`
 
 Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
 
-### Syntax ###
-
+#### Syntax
+```js
 	// Using a function for the open event
 	Rx.DOM.fromWebSocket(url, protocol, function (x) { ... });
 
 	// Using an observer for the open event
 	Rx.DOM.fromWebSocket(url, protocol, observer);
+```
+#### Arguments
+1. `url` *(String)*: The URL of the WebSocket.
+2. `protocol` *(String)*: The protocol of the WebSocket.
+3. `[observerOrOnNext]` *(Rx.Observer|Function)*: An optional Observer or onNext function to capture the open event.
 
-### Parameters ###
+#### Returns
+*(Subject)*: A Subject which wraps a WebSocket.
 
-* url
-
-  > _Required_ **String** - The URL of the WebSocket.
-
-* protocol
-
-  > _Required_ **String** - protocol The protocol of the WebSocket.
-
-* observerOrOnNext
-
-  > _Optional_ **Function|Observer** - An optional Observer or onNext function to capture the open event.
-
-### Return Value ###
-
-An observable sequence wrapping a WebSocket.
-
-### Example ###
-
-	// Using a function for the open
-	var socket = Rx.DOM.fromWebSocket(
-		'http://localhost:8080', 
-		'protocol', 
-		function (e) {
-			console.log('Opening');
-		})
-
-	socket.subscribe(function (next) {
-		console.log('Received data: ' + next);
-	});
-
-	socket.onNext('data');
-
-	// Using an observer for the open
-	var observer = Rx.Observer.create(function (e) {
+#### Example
+```js
+// Using a function for the open
+var socket = Rx.DOM.fromWebSocket(
+	'http://localhost:8080', 
+	'protocol', 
+	function (e) {
 		console.log('Opening');
-	});
+	})
 
-	var socket = Rx.DOM.fromWebSocket(
-		'http://localhost:8080', 'protocol', observer)
+socket.subscribe(function (next) {
+	console.log('Received data: ' + next);
+});
 
-	socket.subscribe(function (next) {
-		console.log('Received data: ' + next);
-	});
+socket.onNext('data');
 
-	socket.onNext('data');
+// Using an observer for the open
+var observer = Rx.Observer.create(function (e) {
+	console.log('Opening');
+});
 
-***
+var socket = Rx.DOM.fromWebSocket(
+	'http://localhost:8080', 'protocol', observer)
+
+socket.subscribe(function (next) {
+	console.log('Received data: ' + next);
+});
+
+socket.onNext('data');
+```
+* * *
 
 ## <a id="fromWebWorker"></a>`Rx.DOM.fromWebWorker`
 
 Creates a Web Worker with a given URL as a Subject.
 
-### Syntax ###
+#### Syntax
+```js
+Rx.DOM.fromWebWorker(url);
+```	
+#### Arguments
+1. `url` *(String)*: The URL of the Web Worker.
 
-	Rx.DOM.fromWebWorker(url);
-	
-### Parameters ###
+#### Returns
+*(Subject)*: A Subject which wraps a Web Worker.
 
-The parameters can be one of the following:
+#### Example
+```js
+var worker = Rx.DOM.fromWebWorker('worker.js');
 
-* url
+worker.subscribe(function (e) {
+	console.log(e.data);
+});
 
-  > **String** - The URL of the Web Worker.
-
-### Return Value ###
-
-A Subject wrapping the Web Worker.
-
-### Example ###
-
-	var worker = Rx.DOM.fromWebWorker('worker.js');
-	
-	worker.subscribe(function (e) {
-		console.log(e.data);
-	});
-
-	worker.onNext('some data');
-
-***
+worker.onNext('some data');
+```
+* * *
 
 ## <a id="fromMutationObserver"></a>`Rx.DOM.fromMutationObserver`
 
-Creates an observable sequence from a `MutationObserver`.  The `MutationObserver` provides developers a way to react to changes in a DOM.
+Creates an observable sequence from a `MutationObserver`.  The `MutationObserver` provides developers a way to react to changes in a DOM.  This requires `MutationObserver` to be supported in your browser/JavaScript runtime.
 
-### Syntax ###
+#### Syntax
+```js
+Rx.DOM.fromMutationObserver(target, options);
+```	
+#### Arguments
+1. `target` *(Node)*: The Node on which to obserave DOM mutations.
+2. `options` *(MutationObserverInit)*: A [`MutationObserverInit`](http://msdn.microsoft.com/en-us/library/windows/apps/dn252345.aspx) object, specifies which DOM mutations should be reported.
 
-	Rx.DOM.fromMutationObserver(target, options);
-	
-### Parameters ###
+#### Returns
+*(Observable)*: An observable sequence which contains mutations on the given DOM target.
 
-The parameters can be one of the following:
+#### Example
+```js
+var foo = document.getElementById('foo');
 
-* target
+var obs = Rx.DOM.fromMutationObserver(foo, { 
+	attributes: true, 
+	childList: true, 
+	characterData: true,
+	attributeFilter: ["id", "dir"]
+});
 
-  > _Required_ **`Object`** - The Node on which to obserave DOM mutations.
+foo.dir = 'rtl';
 
-* options
+// Listen for mutations
+obs.subscribe(function (mutations) {
+    mutations.forEach(function(mutation) {
+		console.log("Type of mutation: " + mutation.type);
 
-  > _Required_ **`Object`** - A [`MutationObserverInit`](http://msdn.microsoft.com/en-us/library/windows/apps/dn252345.aspx) object, specifies which DOM mutations should be reported.
-
-### Return Value ###
-
-An observable sequence which contains mutations on the given DOM target.
-
-### Example ###
-
-	var foo = document.getElementById('foo');
-
-	var obs = Rx.DOM.fromMutationObserver(foo, { 
-		attributes: true, 
-		childList: true, 
-		characterData: true,
-		attributeFilter: ["id", "dir"]
+		if ("attributes" === mutation.type) {
+			console.log("Old attribute value: " + mutationRecord.oldValue);
+		}
 	});
-
-	foo.dir = 'rtl';
-	
-	// Listen for mutations
-	obs.subscribe(function (mutations) {
-	    mutations.forEach(function(mutation) {
-			console.log("Type of mutation: " + mutation.type);
-
-			if ("attributes" === mutation.type) {
-				console.log("Old attribute value: " + mutationRecord.oldValue);
-			}
-		});
-	});
-
-
-***
+});
+```
+* * *
 
 ## <a id="requestAnimationFrameScheduler"></a>`Rx.Scheduler.requestAnimationFrameScheduler`
 
 Gets a scheduler that schedules schedules work on the `window.requestAnimationFrame` for immediate actions.
 
-### Example ###
+#### Example
+```js
+var obs = Rx.Observable.return(
+	42, 
+	Rx.Scheduler.requestAnimationFrameScheduler);
 
-	var obs = Rx.Observable.return(
-		42, 
-		Rx.Scheduler.requestAnimationFrameScheduler);
+obs.subscribe(function (x) {
+	// Scheduled using requestAnimationFrame
+	console.log(x);
+});
 
-	obs.subscribe(function (x) {
-		// Scheduled using requestAnimationFrame
-		console.log(x);
-	});
-
-	// => 42
-
-***
+// => 42
+```
+* * *
 
 ## <a id="mutationObserverScheduler"></a>`Rx.Scheduler.mutationObserverScheduler`
 
 Gets a scheduler that schedules schedules work on the `window.MutationObserver` for immediate actions.
 
-### Example ###
+#### Example
+```js
+var obs = Rx.Observable.return(
+	42, 
+	Rx.Scheduler.mutationObserverScheduler);
 
-	var obs = Rx.Observable.return(
-		42, 
-		Rx.Scheduler.mutationObserverScheduler);
+obs.subscribe(function (x) {
+	// Scheduled using a MutationObserver
+	console.log(x);
+});
 
-	obs.subscribe(function (x) {
-		// Scheduled using a MutationObserver
-		console.log(x);
-	});
-
-	// => 42
-
-***
+// => 42
+```
+* * *
 
 ## LICENSE
 
