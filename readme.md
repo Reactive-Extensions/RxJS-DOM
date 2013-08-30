@@ -79,10 +79,10 @@ Putting it all together, our throttledInput looks like the following:
 ```js
 var textInput = document.getElementById('textInput');
 var throttledInput = Rx.DOM.fromEvent(textInput, 'keyup')
-	.select( function (ev) {
+	.map( function (ev) {
 		return textInput.value;
 	})
-	.where( function (text) {
+	.filter( function (text) {
 		return text.length > 2;
 	})
 	.throttle(500)
@@ -103,10 +103,10 @@ function searchWikipedia(term) {
 Now that the Wikipedia Search has been wrapped, we can tie together throttled input and our service call.  In this case, we will call select on the throttledInput to then take the text from our textInput and then use it to query Wikipedia, filtering out empty records.  Finally, to deal with concurrency issues, we'll need to ensure we're getting only the latest value.  Issues can arise with asynchronous programming where an earlier value, if not cancelled properly, can be returned before the latest value is returned, thus causing bugs.  To ensure that this doesn't happen, we have the `switch` method which returns only the latest value.
 
 ```js
-var suggestions = throttledInput.select( function (text) {
+var suggestions = throttledInput.map( function (text) {
 		return searchWikipedia(text);
 })
-.where( function (data) {
+.filter( function (data) {
 	return data.length == 2 && data[1].length > 0;
 })
 .switch();
@@ -147,42 +147,42 @@ We've only scratched the surface of this library in this simple example.
 
 Events
 
-- [`Rx.DOM.fromEvent`](#fromEvent)
+- [`Rx.DOM.fromEvent`](#rxdomfromevent)
 
 Ajax
 
-- [`Rx.DOM.Request.ajax`](#ajax)
-- [`Rx.DOM.Request.ajaxCold`](#ajaxCold)
-- [`Rx.DOM.Request.get`](#get)
-- [`Rx.DOM.Request.getJSON`](#getJSON)
-- [`Rx.DOM.Request.post`](#post)
+- [`Rx.DOM.Request.ajax`](#rxdomrequestajax)
+- [`Rx.DOM.Request.ajaxCold`](#rxdomrequestajaxcold)
+- [`Rx.DOM.Request.get`](#rxdomrequestget)
+- [`Rx.DOM.Request.getJSON`](#rxdomrequestgetjson)
+- [`Rx.DOM.Request.post`](#rxdomrequestpost)
 
 JSONP
 
-- [`Rx.DOM.Request.jsonpRequest`](#getJSONPRequest)
-- [`Rx.DOM.Request.jsonpRequestCold`](#getJSONPRequestCold)
+- [`Rx.DOM.Request.jsonpRequest`](#rxdomrequestjsonprequest)
+- [`Rx.DOM.Request.jsonpRequestCold`](#rxdomrequestjsonprequestcold)
 
 Web Sockets
 
-- [`Rx.DOM.fromWebSocket`](#fromWebSocket)
+- [`Rx.DOM.fromWebSocket`](#rxdomfromwebsocket)
 
 Web Workers
 
-- [`Rx.DOM.fromWebWorker`](#fromWebWorker)
+- [`Rx.DOM.fromWebWorker`](#rxdomfromwebworker)
 
 Mutation Observers
 
-- [`Rx.DOM.fromMutationObserver`](#fromMutationObserver)
+- [`Rx.DOM.fromMutationObserver`](#rxdomfrommutationobserver)
 
 Schedulers
 
-- [`Rx.Schedulers.requestAnimationFrameScheduler`](#requestAnimationFrameScheduler)
-- [`Rx.Schedulers.mutationObserverScheduler`](#mutationObserverScheduler)
+- [`Rx.Schedulers.requestAnimationFrameScheduler`](#rxschedulerrequestanimationframescheduler)
+- [`Rx.Schedulers.mutationObserverScheduler`](#rxschedulermutationobserverscheduler)
 
 * * *
 
-### <a id="fromEvent"></a>`Rx.DOM.fromEvent(element, eventName)`
-<a href="#fromEvent">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L106-L110 "View in source") [&#x24C9;][1]
+### <a id="rxdomfromevent"></a>`Rx.DOM.fromEvent(element, eventName)`
+<a href="#rxdomfromevent">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L106-L110 "View in source") [&#x24C9;][1]
 
 Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
 
@@ -210,8 +210,8 @@ var obs = Rx.DOM.fromEvent(el, 'keyup')
 
 * * *
 
-### <a id="ajax"></a>`Rx.DOM.Request.ajax(url | settings)`
-<a href="#ajax">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L227-L229 "View in source") [&#x24C9;][1]
+### <a id="#rxdomrequestajax"></a>`Rx.DOM.Request.ajax(url | settings)`
+<a href="#rxdomrequestajax">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L227-L229 "View in source") [&#x24C9;][1]
 
 Creates a hot observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
 
@@ -248,8 +248,8 @@ Rx.DOM.Request.ajax('/products')
 ```
 * * *
 
-### <a id="ajaxCold"></a>`Rx.DOM.Request.ajaxCold(url | settings)`
-<a href="#ajaxCold">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L145-L204 "View in source") [&#x24C9;][1]
+### <a id="rxdomrequestajaxcold"></a>`Rx.DOM.Request.ajaxCold(url | settings)`
+<a href="#rxdomrequestajaxcold">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L145-L204 "View in source") [&#x24C9;][1]
 
 Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
 
@@ -294,8 +294,8 @@ Rx.DOM.Request.ajaxCold('/products')
 ```
 * * *
 
-### <a id="get"></a>`Rx.DOM.Request.get(url)`
-<a href="#get">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L248-L250 "View in source") [&#x24C9;][1]
+### <a id="rxdomrequestget"></a>`Rx.DOM.Request.get(url)`
+<a href="#rxdomrequestget">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L248-L250 "View in source") [&#x24C9;][1]
 
 Creates an observable sequence from an Ajax GET Request with the body.  This method is just shorthand for the `Rx.DOM.Request.ajax` method with the GET method.
 
@@ -320,8 +320,8 @@ Rx.DOM.Request.get('/products')
 ```
 * * *
 
-### <a id="getJSON"></a>`Rx.DOM.Request.getJSON(url)`
-<a href="#get">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L259-L264 "View in source") [&#x24C9;][1]
+### <a id="rxdomrequestgetjson"></a>`Rx.DOM.Request.getJSON(url)`
+<a href="#rxdomrequestgetjson">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L259-L264 "View in source") [&#x24C9;][1]
 
 Creates an observable sequence from JSON from an Ajax request.
 
@@ -346,8 +346,8 @@ Rx.DOM.Request.get('/products')
 ```
 * * *
 
-### <a id="post"></a>`Rx.DOM.Request.post(url, [body])`
-<a href="#post">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L238-L240 "View in source") [&#x24C9;][1]
+### <a id="rxdomrequestpost"></a>`Rx.DOM.Request.post(url, [body])`
+<a href="#rxdomrequestpost">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L238-L240 "View in source") [&#x24C9;][1]
 
 Creates an observable sequence from an Ajax POST Request with the body.  This method is just shorthand for the `Rx.DOM.Request.ajax` method with the POST method.
 
@@ -376,8 +376,8 @@ Rx.DOM.Request.post('/test')
 ```
 ***
 
-### <a id="getJSONPRequest"></a>`Rx.DOM.Request.jsonpRequest(url | settings)`
-<a href="#getJSONPRequest">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L366-L368 "View in source") [&#x24C9;][1]
+### <a id="rxdomrequestjsonprequest"></a>`Rx.DOM.Request.jsonpRequest(url | settings)`
+<a href="#rxdomrequestjsonprequest">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L366-L368 "View in source") [&#x24C9;][1]
 
 Creates a hot observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
 
@@ -424,8 +424,8 @@ Rx.DOM.Request.jsonpRequest(url)
 
 * * *
 
-### <a id="getJSONPRequestCold"></a>`Rx.DOM.Request.jsonpRequestCold(url | settings)`
-<a href="#getJSONPRequestCold">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L293-L345 "View in source") [&#x24C9;][1]
+### <a id="rxdomrequestjsonprequestcold"></a>`Rx.DOM.Request.jsonpRequestCold(url | settings)`
+<a href="#rxdomrequestjsonprequestcold">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L293-L345 "View in source") [&#x24C9;][1]
 
 Creates a cold observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
 
@@ -470,8 +470,8 @@ Rx.DOM.Request.jsonpRequestCold(url)
 ```
 * * *
 
-### <a id="fromWebSocket"></a>`Rx.DOM.fromWebSocket(url, protocol, [observerOrOnNext])`
-<a href="#fromWebSocket">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L382-L420 "View in source") [&#x24C9;][1]
+### <a id="rxdomfromwebsocket"></a>`Rx.DOM.fromWebSocket(url, protocol, [observerOrOnNext])`
+<a href="#rxdomfromwebsocket">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L382-L420 "View in source") [&#x24C9;][1]
 
 Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
 
@@ -515,8 +515,8 @@ socket.onNext('data');
 ```
 * * *
 
-### <a id="fromWebWorker"></a>`Rx.DOM.fromWebWorker(url)`
-<a href="#fromWebWorker">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L434-L456 "View in source") [&#x24C9;][1]
+### <a id="rxdomfromwebworker"></a>`Rx.DOM.fromWebWorker(url)`
+<a href="#rxdomfromwebworker">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L434-L456 "View in source") [&#x24C9;][1]
 
 Creates a Web Worker with a given URL as a Subject.
 
@@ -542,8 +542,8 @@ worker.onNext('some data');
 ```
 * * *
 
-### <a id="fromMutationObserver"></a>`Rx.DOM.fromMutationObserver(target, options)`
-<a href="#fromMutationObserver">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L471-L485 "View in source") [&#x24C9;][1]
+### <a id="rxdomfrommutationobserver"></a>`Rx.DOM.fromMutationObserver(target, options)`
+<a href="#rxdomfrommutationobserver">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L471-L485 "View in source") [&#x24C9;][1]
 
 Creates an observable sequence from a `MutationObserver`.  The `MutationObserver` provides developers a way to react to changes in a DOM.  This requires `MutationObserver` to be supported in your browser/JavaScript runtime.
 
@@ -580,8 +580,8 @@ obs.subscribe(function (mutations) {
 ```
 * * *
 
-### <a id="requestAnimationFrameScheduler"></a>`Rx.Scheduler.requestAnimationFrameScheduler`
-<a href="#requestAnimationFrameScheduler">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L471-L485 "View in source") [&#x24C9;][1]
+### <a id="rxschedulerrequestanimationframescheduler"></a>`Rx.Scheduler.requestAnimationFrameScheduler`
+<a href="#rxschedulerrequestanimationframescheduler">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L471-L485 "View in source") [&#x24C9;][1]
 
 Gets a scheduler that schedules schedules work on the `window.requestAnimationFrame` for immediate actions.
 
@@ -600,8 +600,8 @@ obs.subscribe(function (x) {
 ```
 * * *
 
-### <a id="mutationObserverScheduler"></a>`Rx.Scheduler.mutationObserverScheduler`
-<a href="#mutationObserverScheduler">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L516-L566 "View in source") [&#x24C9;][1]
+### <a id="rxschedulermutationobserverscheduler"></a>`Rx.Scheduler.mutationObserverScheduler`
+<a href="#rxschedulermutationobserverscheduler">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L516-L566 "View in source") [&#x24C9;][1]
 
 Gets a scheduler that schedules schedules work on the `window.MutationObserver` for immediate actions.
 
