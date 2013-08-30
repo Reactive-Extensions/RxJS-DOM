@@ -8,7 +8,7 @@
     }
 
     function main() {
-        var canvas = document.querySelector('#canvas');
+        var canvas = document.getElementById('tutorial');
 
         if (canvas.getContext) {
             var ctx = canvas.getContext('2d');
@@ -18,19 +18,19 @@
             var mouseMoves = Rx.DOM.fromEvent(canvas, 'mousemove');
 
             // Calculate difference between two mouse moves
-            var mouseDiffs = mouseMoves.bufferWithCount(2, 1).select(function (x) {
+            var mouseDiffs = mouseMoves.bufferWithCount(2, 1).map(function (x) {
                 return { first: getOffset(x[0]), second: getOffset(x[1]) };
             });
             
             // Get merge together both mouse up and mouse down
-            var mouseButton = Rx.DOM.fromEvent(canvas, 'mousedown').select(function (x) { return true; })
-                .merge(Rx.DOM.fromEvent(canvas, 'mouseup').select(function (x) { return false; }));
+            var mouseButton = Rx.DOM.fromEvent(canvas, 'mousedown').map(function () { return true; })
+                .merge(Rx.DOM.fromEvent(canvas, 'mouseup').map(function () { return false; }));
 
             // Paint if the mouse is down
-            var paint = mouseButton.select(function (down) { return down ? mouseDiffs : mouseDiffs.take(0) }).switchLatest();
+            var paint = mouseButton.map(function (down) { return down ? mouseDiffs : mouseDiffs.take(0) }).switchLatest();
 
             // Update the canvas
-            paint.subscribe(function (x) {
+            var subscription = paint.subscribe(function (x) {
                 ctx.moveTo(x.first.offsetX, x.first.offsetY);
                 ctx.lineTo(x.second.offsetX, x.second.offsetY);
                 ctx.stroke();

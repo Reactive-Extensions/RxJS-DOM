@@ -27,7 +27,7 @@ To download the source of the HTML DOM Bindings for the Reactive Extensions for 
 	
 	jam install rx-jquery
 
-### Installing with NuGet
+### Installing with [NuGet](http://nuget.org)
 
 	PM> Install-Package RxJS-Bridges-HTML	
 
@@ -50,30 +50,30 @@ We'll start out with a basic skeleton for our application with script references
 	...
 
 The goal here is to take the input from our textbox and throttle it in a way that it doesn't overload the service with requests.  To do that, we'll get the reference to the textInput using the document.getElementById moethod, then bind to the 'keyup' event using the `Rx.DOM.fromEvent` method which then takes the DOM element event handler and transforms it into an RxJS Observable. 
- 
-	var textInput = document.getElementById('textInput');
-	var throttledInput = Rx.DOM.fromEvent(textInput, 'keyup');
-
+```js
+var textInput = document.getElementById('textInput');
+var throttledInput = Rx.DOM.fromEvent(textInput, 'keyup');
+```
 Since we're only interested in the text, we'll use the `select` or `map` method to take the event object and return the target's value.  
-
-		.select( function (ev) {
-			return textInput.value;
-		})
-
+```js
+	.map( function (ev) {
+		return textInput.value;
+	})
+```
 We're also not interested in query terms less than two letters, so we'll trim that user input by using the `where` or `filter` method returning whether the string length is appropriate.
-
-		.where( function (text) {
-			return text.length > 2;
-		})
-
+```js
+	.filter( function (text) {
+		return text.length > 2;
+	})
+```
 We also want to slow down the user input a little bit so that the external service won't be flooded with requests.  To do that, we'll use the `throttle` method with a timeout of 500 milliseconds, which will ignore your fast typing and only return a value after you have paused for that time span.  
-
-		.throttle(500)
-
+```js
+	.throttle(500)
+```
 Lastly, we only want distinct values in our input stream, so we can ignore requests that are not unique, for example if I copy and paste the same value twice, the request will be ignored using the `distinctUntilChanged` method.
-
-		.distinctUntilChanged();
-
+```js
+	.distinctUntilChanged();
+```
 Putting it all together, our throttledInput looks like the following:
 
 ```js
@@ -154,6 +154,7 @@ Ajax
 - [`Rx.DOM.Request.ajax`](#ajax)
 - [`Rx.DOM.Request.ajaxCold`](#ajaxCold)
 - [`Rx.DOM.Request.get`](#get)
+- [`Rx.DOM.Request.getJSON`](#getJSON)
 - [`Rx.DOM.Request.post`](#post)
 
 JSONP
@@ -178,17 +179,12 @@ Schedulers
 - [`Rx.Schedulers.requestAnimationFrameScheduler`](#requestAnimationFrameScheduler)
 - [`Rx.Schedulers.mutationObserverScheduler`](#mutationObserverScheduler)
 
-***
+* * *
 
-## <a id="fromEvent"></a>`Rx.DOM.fromEvent`
+### <a id="fromEvent"></a>`Rx.DOM.fromEvent(element, eventName)`
+<a href="#fromEvent">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L106-L110 "View in source") [&#x24C9;][1]
 
 Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
-
-#### Syntax
-
-```js
-Rx.Observable.fromEvent(element, eventName);
-```
 
 #### Arguments
 1. `element` *(Node|NodeList)*: The DOMElement or NodeList to attach a listener.
@@ -214,26 +210,19 @@ var obs = Rx.DOM.fromEvent(el, 'keyup')
 
 * * *
 
-## <a id="ajax"></a>`Rx.DOM.Request.ajax`
+### <a id="ajax"></a>`Rx.DOM.Request.ajax(url | settings)`
+<a href="#ajax">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L227-L229 "View in source") [&#x24C9;][1]
 
 Creates a hot observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
-
-#### Syntax
-
-	// Using string URL
-	Rx.DOM.Request.ajax(url);
-
-	// Using settings object
-	Rx.DOM.Request.ajax(settings);
 
 #### Arguments
 1. `url` *(String)*: A string of the URL to make the Ajax call.
 1. `settings` *(Object)*: An object with the following properties
   	
-		- url: URL of the request
-  		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
-  		- async: Whether the request is async
-  		- headers: Optional headers
+		- `url` *(String)*: URL of the request
+  		- `method` *(String)*: Method of the request, such as GET, POST, PUT, PATCH, DELETE
+  		- `async` *(Boolean)*: Whether the request is async
+  		- `headers` *(Object)*: Optional headers
 
 #### Returns
 *(Observable)*: An observable sequence containing the `XMLHttpRequest`.
@@ -259,7 +248,8 @@ Rx.DOM.Request.ajax('/products')
 ```
 * * *
 
-## <a id="ajaxCold"></a>`Rx.DOM.Request.ajaxCold`
+### <a id="ajaxCold"></a>`Rx.DOM.Request.ajaxCold(url | settings)`
+<a href="#ajaxCold">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L145-L204 "View in source") [&#x24C9;][1]
 
 Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
 
@@ -275,10 +265,10 @@ Rx.DOM.Request.ajaxCold(settings);
 1. `url` *(String)*: A string of the URL to make the Ajax call.
 1. `settings` *(Object)*: An object with the following properties
   	
-		- url: URL of the request
-  		- Method of the request, such as GET, POST, PUT, PATCH, DELETE
-  		- async: Whether the request is async
-  		- headers: Optional headers
+		- `url` *(String)*: URL of the request
+  		- `method` *(String)*: Method of the request, such as GET, POST, PUT, PATCH, DELETE
+  		- `async` *(Boolean)*: Whether the request is async
+  		- `headers` *(Object)*: Optional headers
 
 #### Returns
 *(Observable)*: An observable sequence containing the `XMLHttpRequest`.
@@ -304,14 +294,11 @@ Rx.DOM.Request.ajaxCold('/products')
 ```
 * * *
 
-## <a id="get"></a>`Rx.DOM.Request.get`
+### <a id="get"></a>`Rx.DOM.Request.get(url)`
+<a href="#get">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L248-L250 "View in source") [&#x24C9;][1]
 
 Creates an observable sequence from an Ajax GET Request with the body.  This method is just shorthand for the `Rx.DOM.Request.ajax` method with the GET method.
 
-#### Syntax
-```js
-Rx.DOM.Request.get(url);
-```
 #### Arguments
 1. `url` *(String)*: A string of the URL to make the Ajax call.
 
@@ -333,7 +320,34 @@ Rx.DOM.Request.get('/products')
 ```
 * * *
 
-## <a id="post"></a>`Rx.DOM.Request.post`
+### <a id="getJSON"></a>`Rx.DOM.Request.getJSON(url)`
+<a href="#get">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L259-L264 "View in source") [&#x24C9;][1]
+
+Creates an observable sequence from JSON from an Ajax request.
+
+#### Arguments
+1. `url` *(String)*: A string of the URL to make the Ajax call.
+
+#### Returns
+*(Observable)*: The observable sequence which contains the parsed JSON.
+
+#### Example
+```js
+Rx.DOM.Request.get('/products')
+	.subscribe(
+		function (data) {
+			// Log data length
+			console.log(data.length);
+		},
+		function (err) {
+			// Log the error
+		}
+	);
+```
+* * *
+
+### <a id="post"></a>`Rx.DOM.Request.post(url, [body])`
+<a href="#post">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L238-L240 "View in source") [&#x24C9;][1]
 
 Creates an observable sequence from an Ajax POST Request with the body.  This method is just shorthand for the `Rx.DOM.Request.ajax` method with the POST method.
 
@@ -343,6 +357,7 @@ Rx.DOM.Request.post(url, body);
 ```
 #### Arguments
 1. `url` *(String)*: A string of the URL to make the Ajax call.
+2. `[body]` *(Object)*: The body to post
 
 #### Returns
 *(Observable)*: The observable sequence which contains the response from the Ajax POST.
@@ -361,7 +376,8 @@ Rx.DOM.Request.post('/test')
 ```
 ***
 
-## <a id="getJSONPRequest"></a>`Rx.DOM.Request.jsonpRequest`
+### <a id="getJSONPRequest"></a>`Rx.DOM.Request.jsonpRequest(url | settings)`
+<a href="#getJSONPRequest">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L366-L368 "View in source") [&#x24C9;][1]
 
 Creates a hot observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
 
@@ -378,8 +394,8 @@ Rx.DOM.Request.jsonpRequest(settings);
 #### Arguments
 1. `url` *(String)*: A string of the URL to make the JSONP call.
 1. `settings` *(Object)*: An object with the following properties:
-		- url: URL of the request
-  		- jsonp: The named callback parameter for the JSONP call
+		- `url` *(String)*: URL of the request
+  		- `jsonp` *(String)*: The named callback parameter for the JSONP call
 
 #### Returns
 *(Observable)*: A hot observable containing the results from the JSONP call.
@@ -408,7 +424,8 @@ Rx.DOM.Request.jsonpRequest(url)
 
 * * *
 
-## <a id="getJSONPRequestCold"></a>`Rx.DOM.Request.jsonpRequestCold`
+### <a id="getJSONPRequestCold"></a>`Rx.DOM.Request.jsonpRequestCold(url | settings)`
+<a href="#getJSONPRequestCold">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L293-L345 "View in source") [&#x24C9;][1]
 
 Creates a cold observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
 
@@ -425,8 +442,8 @@ Rx.DOM.Request.jsonpRequestCold(settings);
 #### Arguments
 1. `url` *(String)*: A string of the URL to make the JSONP call.
 1. `settings` *(Object)*: An object with the following properties:
-		- url: URL of the request
-  		- jsonp: The named callback parameter for the JSONP call
+		- `url` *(String)*: URL of the request
+  		- `jsonp` *(String)*: The named callback parameter for the JSONP call
 
 #### Returns
 *(Observable)*: A cold observable containing the results from the JSONP call.
@@ -453,18 +470,11 @@ Rx.DOM.Request.jsonpRequestCold(url)
 ```
 * * *
 
-## <a id="fromWebSocket"></a>`Rx.DOM.fromWebSocket`
+### <a id="fromWebSocket"></a>`Rx.DOM.fromWebSocket(url, protocol, [observerOrOnNext])`
+<a href="#fromWebSocket">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L382-L420 "View in source") [&#x24C9;][1]
 
 Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
 
-#### Syntax
-```js
-	// Using a function for the open event
-	Rx.DOM.fromWebSocket(url, protocol, function (x) { ... });
-
-	// Using an observer for the open event
-	Rx.DOM.fromWebSocket(url, protocol, observer);
-```
 #### Arguments
 1. `url` *(String)*: The URL of the WebSocket.
 2. `protocol` *(String)*: The protocol of the WebSocket.
@@ -505,7 +515,8 @@ socket.onNext('data');
 ```
 * * *
 
-## <a id="fromWebWorker"></a>`Rx.DOM.fromWebWorker`
+### <a id="fromWebWorker"></a>`Rx.DOM.fromWebWorker(url)`
+<a href="#fromWebWorker">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L434-L456 "View in source") [&#x24C9;][1]
 
 Creates a Web Worker with a given URL as a Subject.
 
@@ -531,14 +542,11 @@ worker.onNext('some data');
 ```
 * * *
 
-## <a id="fromMutationObserver"></a>`Rx.DOM.fromMutationObserver`
+### <a id="fromMutationObserver"></a>`Rx.DOM.fromMutationObserver(target, options)`
+<a href="#fromMutationObserver">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L471-L485 "View in source") [&#x24C9;][1]
 
 Creates an observable sequence from a `MutationObserver`.  The `MutationObserver` provides developers a way to react to changes in a DOM.  This requires `MutationObserver` to be supported in your browser/JavaScript runtime.
 
-#### Syntax
-```js
-Rx.DOM.fromMutationObserver(target, options);
-```	
 #### Arguments
 1. `target` *(Node)*: The Node on which to obserave DOM mutations.
 2. `options` *(MutationObserverInit)*: A [`MutationObserverInit`](http://msdn.microsoft.com/en-us/library/windows/apps/dn252345.aspx) object, specifies which DOM mutations should be reported.
@@ -572,7 +580,8 @@ obs.subscribe(function (mutations) {
 ```
 * * *
 
-## <a id="requestAnimationFrameScheduler"></a>`Rx.Scheduler.requestAnimationFrameScheduler`
+### <a id="requestAnimationFrameScheduler"></a>`Rx.Scheduler.requestAnimationFrameScheduler`
+<a href="#requestAnimationFrameScheduler">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L471-L485 "View in source") [&#x24C9;][1]
 
 Gets a scheduler that schedules schedules work on the `window.requestAnimationFrame` for immediate actions.
 
@@ -591,7 +600,8 @@ obs.subscribe(function (x) {
 ```
 * * *
 
-## <a id="mutationObserverScheduler"></a>`Rx.Scheduler.mutationObserverScheduler`
+### <a id="mutationObserverScheduler"></a>`Rx.Scheduler.mutationObserverScheduler`
+<a href="#mutationObserverScheduler">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L516-L566 "View in source") [&#x24C9;][1]
 
 Gets a scheduler that schedules schedules work on the `window.MutationObserver` for immediate actions.
 
