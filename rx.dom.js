@@ -502,7 +502,7 @@
         cancelAnimFrame = window.msCancelAnimationFrame;
     } else if (window.oRequestAnimationFrame) {
         requestAnimFrame = window.oRequestAnimationFrame;
-        cancelAnimFrame = window.oCancelAnimationFrame;       
+        cancelAnimFrame = window.oCancelAnimationFrame;    
     } else {
         requestAnimFrame = function(cb) { window.setTimeout(cb, 1000 / 60); };
         cancelAnimFrame = window.clearTimeout;
