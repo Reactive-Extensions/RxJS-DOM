@@ -249,7 +249,7 @@
         return observableAjax({ url: url, method: 'GET', async: true });
     };
     
-    if (JSON && typeof JSON.parse === 'function') {
+    if (typeof JSON !== 'undefined' && typeof JSON.parse === 'function') {
         /**
          * Creates an observable sequence from JSON from an Ajax request
          *

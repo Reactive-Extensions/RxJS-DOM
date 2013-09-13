@@ -8,35 +8,35 @@
     }
 
     function main() {
-        var canvas = document.getElementById('tutorial');
+        var canvas = document.getElementById('canvas');
 
-        if (canvas.getContext) {
-            var ctx = canvas.getContext('2d');
-            ctx.beginPath();
+        var ctx = canvas.getContext('2d');
+        ctx.beginPath();
 
-            // Get mouse moves
-            var mouseMoves = Rx.DOM.fromEvent(canvas, 'mousemove');
+        // Get mouse events
+        var mouseMoves = Rx.DOM.fromEvent(canvas, 'mousemove').publish().refCount(),
+            mouseDowns = Rx.DOM.fromEvent(canvas, 'mousedown').publish().refCount(),
+            mouseUps = Rx.DOM.fromEvent(canvas, 'mouseup').publish().refCount();
 
-            // Calculate difference between two mouse moves
-            var mouseDiffs = mouseMoves.bufferWithCount(2, 1).map(function (x) {
-                return { first: getOffset(x[0]), second: getOffset(x[1]) };
-            });
-            
-            // Get merge together both mouse up and mouse down
-            var mouseButton = Rx.DOM.fromEvent(canvas, 'mousedown').map(function () { return true; })
-                .merge(Rx.DOM.fromEvent(canvas, 'mouseup').map(function () { return false; }));
+        // Calculate difference between two mouse moves
+        var mouseDiffs = mouseMoves.bufferWithCount(2, 1).map(function (x) {
+            return { first: getOffset(x[0]), second: getOffset(x[1]) };
+        });
+        
+        // Get merge together both mouse up and mouse down
+        var mouseButton = mouseDowns.map(function () { return true; })
+            .merge(mouseUps.map(function () { return false; }));
 
-            // Paint if the mouse is down
-            var paint = mouseButton.map(function (down) { return down ? mouseDiffs : mouseDiffs.take(0) }).switchLatest();
+        // Paint if the mouse is down
+        var paint = mouseButton.map(function (down) { return down ? mouseDiffs : mouseDiffs.take(0) }).switchLatest();
 
-            // Update the canvas
-            var subscription = paint.subscribe(function (x) {
-                ctx.moveTo(x.first.offsetX, x.first.offsetY);
-                ctx.lineTo(x.second.offsetX, x.second.offsetY);
-                ctx.stroke();
-            });
-        }
+        // Update the canvas
+        var subscription = paint.subscribe(function (x) {
+            ctx.moveTo(x.first.offsetX, x.first.offsetY);
+            ctx.lineTo(x.second.offsetX, x.second.offsetY);
+            ctx.stroke();
+        });
     }
 
-    main();
+    global.onload = main;
 }(window));

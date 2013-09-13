@@ -1,57 +1,31 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
-    <head>
-        <title>Rx for JavaScript Rocks!</title>   
-        <script src="../../node_modules/rx/rx.js"></script>
-        <script src="../../node_modules/rx/rx.binding.js"></script>
-        <script src="../../node_modules/rx/rx.time.js"></script>
-        <script src="../../rx.dom.js"></script>
-        <script>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="author" content="">    
+    <title>Rx for JavaScript Rocks!</title>
+    <link rel="stylesheet" href="http://ajax.aspnetcdn.com/ajax/bootstrap/2.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://ajax.aspnetcdn.com/ajax/bootstrap/2.3.1/css/bootstrap-responsive.min.css">
+    <link rel="stylesheet" href="timeflies.css">
+</head>
 
-            function getOffset(element) {
-                var doc = element.ownerDocument,
-                    docElem = doc.documentElement;
-                    body = doc.body,
-                    clientTop  = docElem.clientTop  || body.clientTop  || 0,
-                    clientLeft = docElem.clientLeft || body.clientLeft || 0,
-                    scrollTop  = window.pageYOffset,
-                    scrollLeft = window.pageXOffset;
-
-                return { top : scrollTop  - clientTop, left: scrollLeft - clientLeft };
-            }
-
-            function initialize () {
-                var i,
-                    text = 'time flies like an arrow',
-                    container = document.getElementById('container'),
-                    mouseMove = Rx.Observable.fromEvent(document, 'mousemove'),
-
-                    mouseMoveOffset = mouseMove.select(function(value) {
-                        var offset = getOffset(container);
-                        return {
-                           offsetX : value.clientX - offset.left + document.documentElement.scrollLeft,
-                           offsetY : value.clientY - offset.top + document.documentElement.scrollTop
-                       };
-                    });
-
-                for (i = 0; i < text.length; i++) {
-                    (function(i) {
-                        var s = document.createElement('span');
-                        s.innerHTML = text[i];
-                        s.style.position = 'absolute';
-                        container.appendChild(s);                        
-
-                        mouseMoveOffset.delay(i * 100).subscribe(function(mouseEvent) {
-                            s.style.top = mouseEvent.offsetY + 'px';
-                            s.style.left = mouseEvent.offsetX + i * 10 + 15 + 'px';
-                        });
-                    })(i);
-                }
-            }
-        </script>
-    </head>
-
-    <body style="font-family: Consolas, monospace; overflow: hidden" onload="initialize();">
-        <div id="container"></div>
-    </body>
+<body>
+    <div id="textContainer"></div>
+    <div class="container">
+        <div class="page-header">
+            <h1>RxJS for jQuery Bindings Time Flies Example</h1>
+            <p class="lead">Example to show effects with delaying each character</p>
+        </div>
+    </div>    
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.10.2.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/bootstrap/2.3.1/bootstrap.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/rxjs/2.1.15/rx.js"></script>
+    <script src="http://cdn.jsdelivr.net/rxjs/2.1.15/rx.binding.js"></script>
+    <script src="http://cdn.jsdelivr.net/rxjs/2.1.15/rx.time.js"></script>
+    <script src="../../rx.dom.js"></script>
+    <script src="timeflies.js"></script>
+</body>
 </html>

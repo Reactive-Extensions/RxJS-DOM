@@ -8,3 +8,5 @@ html  {
   -webkit-user-select: none;
   user-select: none;
 }    
+
+canvas { display: block; }
