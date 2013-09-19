@@ -63,5 +63,5 @@
     dom.fromEvent = function (element, eventName) {
         return observableCreateWithDisposable(function (observer) {
             return createEventListener(element, eventName, function handler (e) { observer.onNext(e); });
-        });
+        }).publish().refCount();
     };
