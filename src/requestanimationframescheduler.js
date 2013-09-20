@@ -26,7 +26,7 @@
      *
      * @memberOf Scheduler
      */
-    Scheduler.requestAnimationFrameScheduler = (function () {
+    Scheduler.requestAnimationFrame = (function () {
 
         function defaultNow () { return new Date().getTime(); }
 

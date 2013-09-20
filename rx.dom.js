@@ -42,6 +42,7 @@
         dom = Rx.DOM = {},
         ajax = Rx.DOM.Request = {};
 
+
     /** @private
      * Creates an event listener on a single element with compat back to DOM Level 1.
      */
@@ -514,7 +515,7 @@
      *
      * @memberOf Scheduler
      */
-    Scheduler.requestAnimationFrameScheduler = (function () {
+    Scheduler.requestAnimationFrame = (function () {
 
         function defaultNow () { return new Date().getTime(); }
 
@@ -574,7 +575,7 @@
          * Scheduler that uses a MutationObserver changes as the scheduling mechanism
          * @memberOf {Scheduler}
          */
-        Scheduler.mutationObserverScheduler = (function () {
+        Scheduler.mutationObserver = (function () {
 
             var queue = {}, queueId = 0;
 
@@ -697,7 +698,7 @@ if ('navigator' in window && 'geolocation' in window.navigator) {
                 }, 
                 geolocationOptions);
 
-            return subject;
+            return subject.asObservable();
         },
 
         /**
@@ -727,7 +728,7 @@ if ('navigator' in window && 'geolocation' in window.navigator) {
                 return function () {
                     window.navigator.geolocation.clearWatch(watchId);
                 };
-            });
+            }).publish().refCount();
         }
     }
 }

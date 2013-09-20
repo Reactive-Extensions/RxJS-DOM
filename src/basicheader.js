@@ -18,3 +18,4 @@
         Scheduler = Rx.Scheduler,
         dom = Rx.DOM = {},
         ajax = Rx.DOM.Request = {};
+

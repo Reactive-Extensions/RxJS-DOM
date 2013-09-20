@@ -27,7 +27,7 @@ if ('navigator' in window && 'geolocation' in window.navigator) {
                 }, 
                 geolocationOptions);
 
-            return subject;
+            return subject.asObservable();
         },
 
         /**
@@ -57,7 +57,7 @@ if ('navigator' in window && 'geolocation' in window.navigator) {
                 return function () {
                     window.navigator.geolocation.clearWatch(watchId);
                 };
-            });
+            }).publish().refCount();
         }
     }
 }

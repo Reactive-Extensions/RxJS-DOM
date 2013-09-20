@@ -17,15 +17,15 @@ To download the source of the HTML DOM Bindings for the Reactive Extensions for 
 
 ### Installing with [NPM](https://npmjs.org/)
 
-	npm install rx-jquery
+	npm install rx-dom
 
 ### Installing with [Bower](http://bower.io/)
 
-	bower install rx-jquery
+	bower install rx-dom
 
 ### Installing with [Jam](http://jamjs.org/)
 	
-	jam install rx-jquery
+	jam install rx-dom
 
 ### Installing with [NuGet](http://nuget.org)
 
@@ -57,7 +57,7 @@ var throttledInput = Rx.DOM.fromEvent(textInput, 'keyup');
 Since we're only interested in the text, we'll use the `select` or `map` method to take the event object and return the target's value.  
 ```js
 	.map( function (ev) {
-		return textInput.value;
+		return ev.target.value;
 	})
 ```
 We're also not interested in query terms less than two letters, so we'll trim that user input by using the `where` or `filter` method returning whether the string length is appropriate.
@@ -100,27 +100,30 @@ function searchWikipedia(term) {
 }
 ```
 
-Now that the Wikipedia Search has been wrapped, we can tie together throttled input and our service call.  In this case, we will call select on the throttledInput to then take the text from our textInput and then use it to query Wikipedia, filtering out empty records.  Finally, to deal with concurrency issues, we'll need to ensure we're getting only the latest value.  Issues can arise with asynchronous programming where an earlier value, if not cancelled properly, can be returned before the latest value is returned, thus causing bugs.  To ensure that this doesn't happen, we have the `switch` method which returns only the latest value.
+Now that the Wikipedia Search has been wrapped, we can tie together throttled input and our service call.  In this case, we will call select on the throttledInput to then take the text from our textInput and then use it to query Wikipedia, filtering out empty records.  Finally, to deal with concurrency issues, we'll need to ensure we're getting only the latest value.  Issues can arise with asynchronous programming where an earlier value, if not cancelled properly, can be returned before the latest value is returned, thus causing bugs.  To ensure that this doesn't happen, we have the `flatMapLatest` method which returns only the latest value.
 
 ```js
-var suggestions = throttledInput.map( function (text) {
+var suggestions = throttledInput.flatMapLatest( function (text) {
 		return searchWikipedia(text);
-})
-.filter( function (data) {
-	return data.length == 2 && data[1].length > 0;
-})
-.switch();
+});
 ```
 
 Finally, we'll subscribe to our observable by calling subscribe which will receive the results and put them into an unordered list.  We'll also handle errors, for example if the server is unavailable by passing in a second function which handles the errors.
 
 ```js
 var resultList = document.getElementById('results');
-var clearSelector = function (element) {
+
+function clearSelector (element) {
     while (element.firstChild) {
         element.removeChild(element.firstChild);
     }
-};
+}
+
+function createLineItem(text) {
+	var li = document.createElement('li');
+	li.innerHTML = text;
+	return li;
+}
 
 suggestions.subscribe( function (data) {
     var results = data[1];
@@ -128,15 +131,11 @@ suggestions.subscribe( function (data) {
     clearSelector(resultList);
 
     for (var i = 0; i < results.length; i++) {
-        var li = document.createElement('li');
-        li.innerHTML = results[i];
-        resultList.appendChild(li);
+        resultList.appendChild(createLineItem(results[i]));
     }
 }, function (e) {
 	clearSelector(resultList);
-    var li = document.createElement('li');
-    li.innerHTML = 'Error: ' + e;
-    resultList.appendChild(li);
+    resultList.appendChild(createLineItem('Error: ' + e));
 });
 
 ```
@@ -174,10 +173,15 @@ Mutation Observers
 
 - [`Rx.DOM.fromMutationObserver`](#rxdomfrommutationobservertarget-options)
 
+Geolocation
+
+- [`Rx.DOM.Geolocation.getCurrentPosition`](#rxdomgeolocationgetcurrentpositiongeolocationoptions)
+- [`Rx.DOM.Geolocation.watchPosition`](#rxdomgeolocationwatchpositiongeolocationoptions)
+
 Schedulers
 
-- [`Rx.Schedulers.requestAnimationFrameScheduler`](#rxschedulerrequestanimationframescheduler)
-- [`Rx.Schedulers.mutationObserverScheduler`](#rxschedulermutationobserverscheduler)
+- [`Rx.Schedulers.requestAnimationFrame`](#rxschedulerrequestanimationframescheduler)
+- [`Rx.Schedulers.mutationObserver`](#rxschedulermutationobserverscheduler)
 
 * * *
 
@@ -580,8 +584,105 @@ obs.subscribe(function (mutations) {
 ```
 * * *
 
-### <a id="rxschedulerrequestanimationframescheduler"></a>`Rx.Scheduler.requestAnimationFrameScheduler`
-<a href="#rxschedulerrequestanimationframescheduler">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L471-L485 "View in source") [&#x24C9;][1]
+### <a id="rxdomgeolocationgetcurrentpositiongeolocationoptions"></a>`Rx.DOM.Geolocation.getCurrentPosition([geolocationOptions])`
+<a href="#rxdomgeolocationgetcurrentpositiongeolocationoptions">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L688-L702 "View in source") [&#x24C9;][1]
+
+Obtains the geographic position, in terms of latitude and longitude coordinates, of the device.
+
+#### Arguments
+1. `[geolocationOptions]` *(Object)*: An object literal to specify one or more of the following attributes and desired values:
+     - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
+     - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
+        If timeout is Infinity, (the default value) the location request will not time out.
+        If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
+     - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
+        If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
+        If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
+        If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
+
+#### Returns
+*(Observable)*: An observable sequence with the current geographical location of the device running the client.
+
+#### Example
+```js
+var source = Rx.DOM.Geolocation.getCurrentPosition();
+
+var subscription = source.subscribe(
+	function (pos) {
+		console.log('Next:' + position.coords.latitude + ',' + position.coords.longitude);
+	},
+	function (err) {
+		var message = '';
+		switch (err.code) {
+			case err.PERMISSION_DENIED:
+				message = 'Permission denied';
+				break;
+			case err.POSITION_UNAVAILABLE:
+				message = 'Position unavailable';
+				break;
+			case err.PERMISSION_DENIED_TIMEOUT:
+				message = 'Position timeout';
+				break;
+		}
+		console.log('Error: ' + message);
+	},
+	function () {
+		console.log('Completed');
+	});
+```
+* * *
+
+### <a id="rxdomgeolocationwatchpositiongeolocationoptions"></a>`Rx.DOM.Geolocation.watchPosition([geolocationOptions])`
+<a href="#rxdomgeolocationwatchpositiongeolocationoptions">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L717-L733 "View in source") [&#x24C9;][1]
+
+Begins listening for updates to the current geographical location of the device running the client.
+
+#### Arguments
+1. `[geolocationOptions]` *(Object)*: An object literal to specify one or more of the following attributes and desired values:
+     - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
+     - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
+        If timeout is Infinity, (the default value) the location request will not time out.
+        If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
+     - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
+        If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
+        If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
+        If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
+
+#### Returns
+*(Observable)*: An observable sequence with the current geographical location of the device running the client.
+
+#### Example
+```js
+var source = Rx.DOM.Geolocation.watchPosition();
+
+var subscription = source.subscribe(
+	function (pos) {
+		console.log('Next:' + position.coords.latitude + ',' + position.coords.longitude);
+	},
+	function (err) {
+		var message = '';
+		switch (err.code) {
+			case err.PERMISSION_DENIED:
+				message = 'Permission denied';
+				break;
+			case err.POSITION_UNAVAILABLE:
+				message = 'Position unavailable';
+				break;
+			case err.PERMISSION_DENIED_TIMEOUT:
+				message = 'Position timeout';
+				break;
+		}
+		console.log('Error: ' + message);
+	},
+	function () {
+		console.log('Completed');
+	});
+```
+* * *
+
+
+### <a id="rxschedulerrequestanimationframe"></a>`Rx.Scheduler.requestAnimationFrame`
+<a href="#rxschedulerrequestanimationframe">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L471-L485 "View in source") [&#x24C9;][1]
 
 Gets a scheduler that schedules schedules work on the `window.requestAnimationFrame` for immediate actions.
 
@@ -589,7 +690,7 @@ Gets a scheduler that schedules schedules work on the `window.requestAnimationFr
 ```js
 var obs = Rx.Observable.return(
 	42, 
-	Rx.Scheduler.requestAnimationFrameScheduler);
+	Rx.Scheduler.requestAnimationFrame);
 
 obs.subscribe(function (x) {
 	// Scheduled using requestAnimationFrame
@@ -600,8 +701,8 @@ obs.subscribe(function (x) {
 ```
 * * *
 
-### <a id="rxschedulermutationobserverscheduler"></a>`Rx.Scheduler.mutationObserverScheduler`
-<a href="#rxschedulermutationobserverscheduler">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L516-L566 "View in source") [&#x24C9;][1]
+### <a id="rxschedulermutationobserver"></a>`Rx.Scheduler.mutationObserver`
+<a href="#rxschedulermutationobserver">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L516-L566 "View in source") [&#x24C9;][1]
 
 Gets a scheduler that schedules schedules work on the `window.MutationObserver` for immediate actions.
 
@@ -609,7 +710,7 @@ Gets a scheduler that schedules schedules work on the `window.MutationObserver` 
 ```js
 var obs = Rx.Observable.return(
 	42, 
-	Rx.Scheduler.mutationObserverScheduler);
+	Rx.Scheduler.mutationObserver);
 
 obs.subscribe(function (x) {
 	// Scheduled using a MutationObserver
@@ -622,7 +723,7 @@ obs.subscribe(function (x) {
 
 ## LICENSE
 
-Copyright 2013 MS Open Tech
+Copyright 2013 Microsoft Open Technologies
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

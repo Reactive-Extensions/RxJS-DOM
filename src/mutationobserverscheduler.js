@@ -6,7 +6,7 @@
          * Scheduler that uses a MutationObserver changes as the scheduling mechanism
          * @memberOf {Scheduler}
          */
-        Scheduler.mutationObserverScheduler = (function () {
+        Scheduler.mutationObserver = (function () {
 
             var queue = {}, queueId = 0;
 

@@ -44,7 +44,8 @@
     "HTML5",
     "requestAnimationFrame",
     "WebSockets",
-    "WebWorkers"
+    "WebWorkers",
+    "Geolocation"
   ],
   "main": "rx.dom.node.js",
   "scripts": {
