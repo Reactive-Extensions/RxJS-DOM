@@ -517,7 +517,7 @@
      */
     Scheduler.requestAnimationFrame = (function () {
 
-        function defaultNow () { return new Date().getTime(); }
+        var defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }());
 
         function scheduleNow(state, action) {
             var scheduler = this,
