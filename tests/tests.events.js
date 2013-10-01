@@ -1,4 +1,6 @@
 
+module('Events');
+
 var TestScheduler = Rx.TestScheduler,
     DOM = Rx.DOM;
 

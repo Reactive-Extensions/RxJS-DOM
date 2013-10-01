@@ -51,8 +51,6 @@
                 delete queue[id];
             }
 
-            function defaultNow () { return new Date().getTime(); }
-
             function scheduleNow(state, action) {
                 var scheduler = this,
                     disposable = new SingleAssignmentDisposable();

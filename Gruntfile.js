@@ -36,14 +36,13 @@ module.exports = function (grunt) {
                     'src/outro.js'
                 ],
                 dest: 'rx.dom.js'
-            }
+            }         
         },
         uglify: {
             basic: {
                 src: ['<banner>', 'rx.dom.js'],
                 dest: 'rx.dom.min.js'
             }
-
         },
         qunit: {
             all: ['tests/*.html']

@@ -34,9 +34,11 @@
     */
     ajax.ajaxCold = function (settings) {
         return observableCreateWithDisposable( function (observer) {
+            var isDone = false;
             if (typeof settings === 'string') {
                 settings = { method: 'GET', url: settings, async: true };
             }
+            settings.method || (settings.method = 'GET');
             if (settings.async === undefined) {
                 settings.async = true;
             }
@@ -58,7 +60,7 @@
                 if (settings.headers) {
                     var headers = settings.headers;
                     for (var header in headers) {
-                        if (headers.hasOwnProperty(header)) {
+                        if (hasOwnProperty.call(headers, header)) {
                             xhr.setRequestHeader(header, headers[header]);
                         }
                     }
@@ -73,6 +75,8 @@
                         } else {
                             observer.onError(xhr);
                         }
+
+                        isDone = true;
                     }
                 };
 
@@ -86,7 +90,7 @@
             }
         
             return disposableCreate( function () {
-                if (xhr.readyState !== 4) {
+                if (!isDone && xhr.readyState !== 4) {
                     xhr.abort();
                 }
             });
@@ -119,7 +123,18 @@
     };
 
     /**
-     * Creates an observable sequence from an Ajax POST Request with the body.
+     * Creates a cold observable sequence from an Ajax POST Request with the body.
+     *
+     * @param {String} url The URL to POST
+     * @param {Object} body The body to POST
+     * @returns {Observable} The observable sequence which contains the response from the Ajax POST.
+     */
+    ajax.postCold = function (url, body) {
+        return observableAjax({ url: url, body: body, method: 'POST', async: true });
+    };
+
+    /**
+     * Creates a hot observable sequence from an Ajax POST Request with the body.
      *
      * @param {String} url The URL to POST
      * @param {Object} body The body to POST
@@ -138,6 +153,16 @@
     var observableGet = ajax.get = function (url) {
         return observableAjax({ url: url, method: 'GET', async: true });
     };
+
+    /**
+     * Creates an observable sequence from an Ajax GET Request with the body.
+     *
+     * @param {String} url The URL to GET
+     * @returns {Observable} The observable sequence which contains the response from the Ajax GET.
+     */   
+    var observableGetCold = ajax.getCold = function (url) {
+        return observableAjax({ url: url, method: 'GET', async: true });
+    };    
     
     if (typeof JSON !== 'undefined' && typeof JSON.parse === 'function') {
         /**
@@ -150,5 +175,17 @@
             return observableGet(url).select(function (xhr) {
                 return JSON.parse(xhr.responseText);
             });
-        };      
+        };
+
+        /**
+         * Creates an observable sequence from JSON from an Ajax request
+         *
+         * @param {String} url The URL to GET
+         * @returns {Observable} The observable sequence which contains the parsed JSON.
+         */       
+        ajax.getJSONCold = function (url) {
+            return observableGetCold(url).select(function (xhr) {
+                return JSON.parse(xhr.responseText);
+            });
+        };            
     }    
