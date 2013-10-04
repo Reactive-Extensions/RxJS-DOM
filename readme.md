@@ -21,7 +21,7 @@ To download the source of the HTML DOM Bindings for the Reactive Extensions for 
 
 ### Installing with [Bower](http://bower.io/)
 
-	bower install rx-dom
+	bower install rxjs-dom
 
 ### Installing with [Jam](http://jamjs.org/)
 	

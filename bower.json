@@ -1,9 +1,9 @@
 {
-  "name": "Rx-DOM",
-  "version": "2.0.7",
+  "name": "rxjs-dom",
+  "version": "2.0.8",
   "main": "rx.dom.js",
   "dependencies": {
-    "rx": "*"
+    "rxjs": "*"
   },
   "ignore": [
     ".*",
