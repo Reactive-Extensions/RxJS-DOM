@@ -1,5 +1,5 @@
 (function (global) {
-    var canvas, context, toggle;
+    var canvas, context, subscription;
 
     function init() {
 
@@ -21,20 +21,24 @@
     }
 
     function animate() {
-        Rx.Scheduler.requestAnimationFrameScheduler.scheduleRecursive(function (self) {
-            draw();
-            self();
-        });
+        subscription = Rx.Observable.generate(
+                0,
+                function (x) { return true; },
+                function (x) { return x + 1; },
+                function (x) { return x; },
+                Rx.Scheduler.requestAnimationFrame
+            )
+            .timestamp()
+            .subscribe(draw);
     }
 
-    function draw() {
+    function draw(ts) {
 
-        var time = new Date().getTime() * 0.002;
+        var time = ts.timestamp * 0.002;
         var x = Math.sin( time ) * 192 + 256;
         var y = Math.cos( time * 0.9 ) * 192 + 256;
-        toggle = !toggle;
 
-        context.fillStyle = toggle ? 'rgb(200,200,20)' :  'rgb(20,20,200)';
+        context.fillStyle = ts.value % 2 === 0 ? 'rgb(200,200,20)' :  'rgb(20,20,200)';
         context.beginPath();
         context.arc( x, y, 10, 0, Math.PI * 2, true );
         context.closePath();
