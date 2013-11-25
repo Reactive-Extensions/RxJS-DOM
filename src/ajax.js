@@ -3,11 +3,11 @@
      * Gets the proper XMLHttpRequest for support for older IE 
      */
     function getXMLHttpRequest() {
-        if (global.XMLHttpRequest) {
-            return new global.XMLHttpRequest;
+        if (root.XMLHttpRequest) {
+            return new root.XMLHttpRequest;
         } else {
             try {
-                return new global.ActiveXObject('Microsoft.XMLHTTP');
+                return new root.ActiveXObject('Microsoft.XMLHTTP');
             } catch (e) {
                 throw new Error('XMLHttpRequest is not supported by your browser');
             }

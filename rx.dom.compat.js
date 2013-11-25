@@ -49,6 +49,59 @@
         ajax = Rx.DOM.Request = {},
         hasOwnProperty = {}.hasOwnProperty;
 
+    function fixEvent(event) {
+        var stopPropagation = function () {
+            this.cancelBubble = true;
+        };
+
+        var preventDefault = function () {
+            this.bubbledKeyCode = this.keyCode;
+            if (this.ctrlKey) {
+                try {
+                    this.keyCode = 0;
+                } catch (e) { }
+            }
+            this.defaultPrevented = true;
+            this.returnValue = false;
+            this.modified = true;
+        };
+
+        event || (event = window.event);
+        if (!event.target) {
+            event.target = event.target || event.srcElement; 
+
+            if (event.type == 'mouseover') {
+                event.relatedTarget = event.fromElement;
+            }
+            if (event.type == 'mouseout') {
+                event.relatedTarget = event.toElement;
+            }
+            // Adding stopPropogation and preventDefault to IE
+            if (!event.stopPropagation){
+                event.stopPropagation = stopPropagation;
+                event.preventDefault = preventDefault;
+            }
+            // Normalize key events
+            switch(event.type){
+                case 'keypress':
+                    var c = ('charCode' in event ? event.charCode : event.keyCode);
+                    if (c == 10) {
+                        c = 0;
+                        event.keyCode = 13;
+                    } else if (c == 13 || c == 27) {
+                        c = 0; 
+                    } else if (c == 3) {
+                        c = 99; 
+                    }
+                    event.charCode = c;
+                    event.keyChar = event.charCode ? String.fromCharCode(event.charCode) : '';
+                    break;
+            }                    
+        }
+
+        return event;
+    }
+
     function createListener (element, name, handler) {
         // Node.js specific
         if (element.addListener) {
@@ -56,10 +109,27 @@
             return disposableCreate(function () {
                 element.removeListener(name, handler);
             });
-        } else if (element.addEventListener) {
+        }
+        // Standards compliant
+        if (element.addEventListener) {
             element.addEventListener(name, handler, false);
             return disposableCreate(function () {
                 element.removeEventListener(name, handler, false);
+            });
+        } else if (element.attachEvent) {
+            // IE Specific
+            var innerHandler = function (event) {
+                handler(fixEvent(event));
+            };
+            element.attachEvent('on' + name, innerHandler);
+            return disposableCreate(function () {
+                element.detachEvent('on' + name, innerHandler);
+            });         
+        } else {
+            // Level 1 DOM Events      
+            element['on' + name] = handler;
+            return disposableCreate(function () {
+                element['on' + name] = null;
             });
         }
     }
@@ -87,7 +157,7 @@
      * 
      * @param {Object} element The DOMElement or NodeList to attach a listener.
      * @param {String} eventName The event name to attach the observable sequence.
-     * @param {Function} [selector] A selector which takes the arguments from the event handler to produce a single item to yield on next.     
+     * @param {Function} [selector] A selector which takes the arguments from the event handler to produce a single item to yield on next.
      * @returns {Observable} An observable sequence of events from the specified element and the specified event.
      */
     dom.fromEvent = function (element, eventName, selector) {

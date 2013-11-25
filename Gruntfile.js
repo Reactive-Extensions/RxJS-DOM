@@ -25,7 +25,7 @@ module.exports = function (grunt) {
                     'src/license.js',
                     'src/intro.js',
                     'src/basicheader.js',
-                    'src/events.js',
+                    'src/events-modern.js',
                     'src/ajax.js',
                     'src/jsonp.js',
                     'src/websocket.js',
@@ -37,13 +37,35 @@ module.exports = function (grunt) {
                     'src/outro.js'
                 ],
                 dest: 'rx.dom.js'
-            }         
+            },
+            compat: {
+                src: [
+                    'src/license.js',
+                    'src/intro.js',
+                    'src/basicheader.js',
+                    'src/events.js',
+                    'src/ajax.js',
+                    'src/jsonp.js',
+                    'src/websocket.js',
+                    'src/webworker.js',
+                    'src/mutationobserver.js',
+                    'src/requestanimationframescheduler.js',
+                    'src/mutationobserverscheduler.js',
+                    'src/geolocation.js',
+                    'src/outro.js'
+                ],
+                dest: 'rx.dom.compat.js'
+            },
         },
         uglify: {
             basic: {
                 src: ['<banner>', 'rx.dom.js'],
                 dest: 'rx.dom.min.js'
-            }
+            },
+            compat: {
+                src: ['<banner>', 'rx.dom.compat.js'],
+                dest: 'rx.dom.compat.min.js'
+            }            
         },
         qunit: {
             all: ['tests/*.html']
@@ -87,5 +109,5 @@ module.exports = function (grunt) {
     });
 
     // Default task(s).
-    grunt.registerTask('default', ['concat:basic', 'uglify:basic', 'qunit']);
+    grunt.registerTask('default', ['concat:basic', 'concat:compat', 'uglify:basic', 'uglify:compat', 'qunit']);
 };
