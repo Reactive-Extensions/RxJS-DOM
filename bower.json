@@ -1,10 +1,7 @@
 {
   "name": "rxjs-dom",
-  "version": "3.0.0",
-  "main": [
-    "rx.dom.js",
-    "rx.dom.compat.js"
-  ],
+  "version": "3.0.1",
+  "main": "rx.dom.js",
   "dependencies": {
     "rxjs": "*"
   },
