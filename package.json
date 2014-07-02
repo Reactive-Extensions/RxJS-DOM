@@ -31,7 +31,7 @@
     "load-grunt-tasks": "*"
   },
   "jam": {
-    "main": "rx.dom.js"
+    "main": "dist/rx.dom.js"
   },  
   "keywords": [
     "Reactive",
