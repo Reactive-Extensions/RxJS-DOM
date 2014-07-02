@@ -12,10 +12,6 @@ This library provides bridges to common DOM related features such as events, Aja
 
 This section contains the reference documentation for the Reactive Extensions for the DOM class library.
 
-Events
-
-- [`Rx.DOM.fromEvent`](#rxdomfromeventelement-eventname)
-
 Ajax
 
 - [`Rx.DOM.Request.ajax`](#rxdomrequestajaxurl--settings)
@@ -50,35 +46,6 @@ Schedulers
 
 - [`Rx.Schedulers.requestAnimationFrame`](#rxschedulerrequestanimationframescheduler)
 - [`Rx.Schedulers.mutationObserver`](#rxschedulermutationobserverscheduler)
-
-* * *
-
-### <a id="rxdomfromeventelement-eventname"></a>`Rx.DOM.fromEvent(element, eventName)`
-<a href="#rxdomfromeventelement-eventname">#</a>[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L106-L110 "View in source") [&#x24C9;][1]
-
-Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
-
-#### Arguments
-1. `element` *(Node|NodeList)*: The DOMElement or NodeList to attach a listener.
-2. `eventName` *(String)*: The event name to attach the observable sequence.
-
-#### Returns
-*(Observable)*: An observable sequence of events from the specified element and the specified event.  
-
-#### Example
-
-The following example demonstrates attaching to a text input and listening to the keyup event.
-```js
-// Get the element
-var el = document.getElementById('text1');
-
-// Attach to the keyup event
-var obs = Rx.DOM.fromEvent(el, 'keyup')
-	.subscribe( function (e) {
-		// Write the keycode
-		console.log(e.keyCode);
-	});
-```
 
 * * *
 

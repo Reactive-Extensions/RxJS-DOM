@@ -1,6 +1,6 @@
 {
   "name": "rxjs-dom",
-  "version": "2.0.9",
+  "version": "3.0.0",
   "main": [
     "rx.dom.js",
     "rx.dom.compat.js"

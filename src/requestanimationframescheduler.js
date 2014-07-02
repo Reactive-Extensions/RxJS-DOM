@@ -1,78 +1,71 @@
 
-    // Get the right animation frame method
-    var requestAnimFrame, cancelAnimFrame;
-    if (window.requestAnimationFrame) {
-        requestAnimFrame = window.requestAnimationFrame;
-        cancelAnimFrame = window.cancelAnimationFrame;
-    } else if (window.mozRequestAnimationFrame) {
-        requestAnimFrame = window.mozRequestAnimationFrame;
-        cancelAnimFrame = window.mozCancelAnimationFrame;
-    } else if (window.webkitRequestAnimationFrame) {
-        requestAnimFrame = window.webkitRequestAnimationFrame;
-        cancelAnimFrame = window.webkitCancelAnimationFrame;
-    } else if (window.msRequestAnimationFrame) {
-        requestAnimFrame = window.msRequestAnimationFrame;
-        cancelAnimFrame = window.msCancelAnimationFrame;
-    } else if (window.oRequestAnimationFrame) {
-        requestAnimFrame = window.oRequestAnimationFrame;
-        cancelAnimFrame = window.oCancelAnimationFrame;    
-    } else {
-        requestAnimFrame = function(cb) { window.setTimeout(cb, 1000 / 60); };
-        cancelAnimFrame = window.clearTimeout;
+  // Get the right animation frame method
+  var requestAnimFrame, cancelAnimFrame;
+  if (root.requestAnimationFrame) {
+    requestAnimFrame = root.requestAnimationFrame;
+    cancelAnimFrame = root.cancelAnimationFrame;
+  } else if (root.mozRequestAnimationFrame) {
+    requestAnimFrame = root.mozRequestAnimationFrame;
+    cancelAnimFrame = root.mozCancelAnimationFrame;
+  } else if (root.webkitRequestAnimationFrame) {
+    requestAnimFrame = root.webkitRequestAnimationFrame;
+    cancelAnimFrame = root.webkitCancelAnimationFrame;
+  } else if (root.msRequestAnimationFrame) {
+    requestAnimFrame = root.msRequestAnimationFrame;
+    cancelAnimFrame = root.msCancelAnimationFrame;
+  } else if (root.oRequestAnimationFrame) {
+    requestAnimFrame = root.oRequestAnimationFrame;
+    cancelAnimFrame = root.oCancelAnimationFrame;    
+  } else {
+    requestAnimFrame = function(cb) { root.setTimeout(cb, 1000 / 60); };
+    cancelAnimFrame = root.clearTimeout;
+  }
+
+  /** 
+   * Gets a scheduler that schedules schedules work on the requestAnimationFrame for immediate actions.
+   */
+  Scheduler.requestAnimationFrame = (function () {
+
+    function scheduleNow(state, action) {
+      var scheduler = this,
+        disposable = new SingleAssignmentDisposable();
+      var id = requestAnimFrame(function () {
+        !disposable.isDisposed && (disposable.setDisposable(action(scheduler, state)));
+      });
+      return new CompositeDisposable(disposable, disposableCreate(function () {
+        cancelAnimFrame(id);
+      }));
     }
 
-    /** 
-     * Gets a scheduler that schedules schedules work on the requestAnimationFrame for immediate actions.
-     *
-     * @memberOf Scheduler
-     */
-    Scheduler.requestAnimationFrame = (function () {
+    function scheduleRelative(state, dueTime, action) {
+      var scheduler = this,
+        dt = Scheduler.normalize(dueTime);
+        
+      if (dt === 0) { return scheduler.scheduleWithState(state, action); }
 
-        function scheduleNow(state, action) {
-            var scheduler = this,
-                disposable = new SingleAssignmentDisposable();
-            var id = requestAnimFrame(function () {
-                if (!disposable.isDisposed) {
-                    disposable.setDisposable(action(scheduler, state));
-                }
-            });
-            return new CompositeDisposable(disposable, disposableCreate(function () {
-                cancelAnimFrame(id);
-            }));
+      var disposable = new SingleAssignmentDisposable(),
+          id;
+      var scheduleFunc = function () {
+        if (id) { cancelAnimFrame(id); }
+        if (dt - scheduler.now() <= 0) {
+          !disposable.isDisposed && (disposable.setDisposable(action(scheduler, state)));
+        } else {
+          id = requestAnimFrame(scheduleFunc);
         }
+      };
 
-        function scheduleRelative(state, dueTime, action) {
-            var scheduler = this,
-                dt = Scheduler.normalize(dueTime);
-            if (dt === 0) {
-                return scheduler.scheduleWithState(state, action);
-            }
+      id = requestAnimFrame(scheduleFunc);
 
-            var disposable = new SingleAssignmentDisposable(),
-                id;
-            var scheduleFunc = function () {
-                if (id) { cancelAnimFrame(id); }
-                if (dt - scheduler.now() <= 0) {
-                    if (!disposable.isDisposed) {
-                        disposable.setDisposable(action(scheduler, state));
-                    }
-                } else {
-                    id = requestAnimFrame(scheduleFunc);
-                }
-            };
+      return new CompositeDisposable(disposable, disposableCreate(function () {
+        cancelAnimFrame(id);
+      }));
+    }
 
-            id = requestAnimFrame(scheduleFunc);
+    function scheduleAbsolute(state, dueTime, action) {
+      return this.scheduleWithRelativeAndState(state, dueTime - this.now(), action);
+    }
 
-            return new CompositeDisposable(disposable, disposableCreate(function () {
-                cancelAnimFrame(id);
-            }));
-        }
+    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);        
 
-        function scheduleAbsolute(state, dueTime, action) {
-            return this.scheduleWithRelativeAndState(state, dueTime - this.now(), action);
-        }
-
-        return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);        
-
-    }());
-    
+  }());
+  

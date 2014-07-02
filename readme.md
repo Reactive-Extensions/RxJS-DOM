@@ -1,4 +1,4 @@
-RxJS-DOM <sup>2.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript 
+RxJS-DOM <sup>3.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript 
 ==========================================================
 ## OVERVIEW
 
@@ -21,7 +21,7 @@ To download the source of the HTML DOM Bindings for the Reactive Extensions for 
 
 ### Installing with [Bower](http://bower.io/)
 
-	bower install rx-dom
+	bower install rxjs-dom
 
 ### Installing with [Jam](http://jamjs.org/)
 	
@@ -35,10 +35,9 @@ To download the source of the HTML DOM Bindings for the Reactive Extensions for 
 
 Let's walk through a simple yet powerful example of the Reactive Extensions for JavaScript Bindings for HTML, autocomplete.  In this example, we will take user input from a textbox and trim and throttle the input so that we're not overloading the server with requests for suggestions.
 
-We'll start out with a basic skeleton for our application with script references to RxJS, RxJS Time-based methods, and the RxJS Bindings for HTML DOM, along with a textbox for input and a list for our results.
+We'll start out with a basic skeleton for our application with script references to RxJS Lite, RxJS Time-based methods, and the RxJS Bindings for HTML DOM, along with a textbox for input and a list for our results.
 
-	<script type="text/javascript" src="rx.js"></script>
-	<script type="text/javascript" src="rx.binding.js"></script>
+	<script type="text/javascript" src="rx.lite.js"></script>
 	<script type="text/javascript" src="rx.time.js"></script>
 	<script type="text/javascript" src="rx.dom.js"><script>
 	<script type="text/javascript">
@@ -49,10 +48,10 @@ We'll start out with a basic skeleton for our application with script references
 	<ul id="results"></ul>
 	...
 
-The goal here is to take the input from our textbox and throttle it in a way that it doesn't overload the service with requests.  To do that, we'll get the reference to the textInput using the document.getElementById moethod, then bind to the 'keyup' event using the `Rx.DOM.fromEvent` method which then takes the DOM element event handler and transforms it into an RxJS Observable. 
+The goal here is to take the input from our textbox and throttle it in a way that it doesn't overload the service with requests.  To do that, we'll get the reference to the textInput using the document.getElementById moethod, then bind to the 'keyup' event using the `Rx.Observable.fromEvent` method from base RxJS which then takes the DOM element event handler and transforms it into an RxJS Observable. 
 ```js
 var textInput = document.getElementById('textInput');
-var throttledInput = Rx.DOM.fromEvent(textInput, 'keyup');
+var throttledInput = Rx.Observable.fromEvent(textInput, 'keyup');
 ```
 Since we're only interested in the text, we'll use the `select` or `map` method to take the event object and return the target's value.  
 ```js
@@ -78,7 +77,7 @@ Putting it all together, our throttledInput looks like the following:
 
 ```js
 var textInput = document.getElementById('textInput');
-var throttledInput = Rx.DOM.fromEvent(textInput, 'keyup')
+var throttledInput = Rx.Observable.fromEvent(textInput, 'keyup')
 	.map( function (ev) {
 		return textInput.value;
 	})
@@ -93,10 +92,10 @@ Now that we have the throttled input from the textbox, we need to query our serv
 
 ```js
 function searchWikipedia(term) {
-    var cleanTerm = global.encodeURIComponent(term);
-    var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
-        + cleanTerm + '&callback=JSONPCallback';
-    return Rx.DOM.Request.jsonpRequestCold(url);
+  var cleanTerm = global.encodeURIComponent(term);
+  var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
+    + cleanTerm + '&callback=JSONPCallback';
+  return Rx.DOM.Request.jsonpRequest(url);
 }
 ```
 
@@ -114,9 +113,9 @@ Finally, we'll subscribe to our observable by calling subscribe which will recei
 var resultList = document.getElementById('results');
 
 function clearSelector (element) {
-    while (element.firstChild) {
-        element.removeChild(element.firstChild);
-    }
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
 }
 
 function createLineItem(text) {
@@ -126,13 +125,13 @@ function createLineItem(text) {
 }
 
 suggestions.subscribe( function (data) {
-    var results = data[1];
+  var results = data[1];
 
-    clearSelector(resultList);
+  clearSelector(resultList);
 
-    for (var i = 0; i < results.length; i++) {
-        resultList.appendChild(createLineItem(results[i]));
-    }
+  for (var i = 0; i < results.length; i++) {
+    resultList.appendChild(createLineItem(results[i]));
+  }
 }, function (e) {
 	clearSelector(resultList);
     resultList.appendChild(createLineItem('Error: ' + e));
