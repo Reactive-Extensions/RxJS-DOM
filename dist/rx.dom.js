@@ -22,12 +22,12 @@
 
   // Because of build optimizers
   if (typeof define === 'function' && define.amd) {
-    define(['rx', 'exports'], function (Rx, exports) {
+    define(['./rx', 'exports'], function (Rx, exports) {
       root.Rx = factory(root, exports, Rx);
       return root.Rx;
     });
   } else if (typeof module === 'object' && module && module.exports === freeExports) {
-    module.exports = factory(root, module.exports, require('./rx'));
+    module.exports = factory(root, module.exports, require('rx'));
   } else {
     root.Rx = factory(root, {}, root.Rx);
   }
