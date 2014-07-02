@@ -4,17 +4,23 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" >
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rx for JavaScript Rocks!</title>
-    <link rel="stylesheet" href="draw.css">
+    <link rel="stylesheet" href="../vendor/bootstrap-3.2.0/css/bootstrap.min.css">
     <!--[if lt IE 9]>
-      <script type="text/javascript" src="excanvas_src.js"></script>
+      <script src="../vendor/html5shiv-3.7.2/html5shiv.min.js"></script>
+      <script src="../vendor/respond-1.4.2/respond.min.js"></script>
+      <script type="text/javascript" src="../vendor/excanvas_src.js"></script>
     <![endif]-->       
+    <link rel="stylesheet" href="draw.css">  
 </head>
 
 <body>
-    <script src="http://cdn.jsdelivr.net/rxjs/2.1.18/rx.js"></script>
-    <script src="http://cdn.jsdelivr.net/rxjs/2.1.18/rx.binding.js"></script>
-    <script src="http://cdn.jsdelivr.net/rxjs/2.1.18/rx.time.js"></script>    
-    <script src="../../rx.dom.js"></script>
+    <!--[if lt IE 9]>
+    <script src="../../node_modules/rx/dist/rx.lite.compat.js"></script>
+    <![endif]--> 
+    <!--[if gte IE 9]><!-->        
+    <script src="../../node_modules/rx/dist/rx.lite.js"></script>
+    <!--<![endif]-->
+    <script src="../../dist/rx.dom.js"></script>
     <script src="draw.js"></script>
 </body>
 </html>

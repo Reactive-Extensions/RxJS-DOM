@@ -7,8 +7,11 @@
     <meta name="description" content="">
     <meta name="author" content="">    
     <title>Rx for JavaScript Rocks!</title>
-    <link rel="stylesheet" href="http://ajax.aspnetcdn.com/ajax/bootstrap/2.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="http://ajax.aspnetcdn.com/ajax/bootstrap/2.3.1/css/bootstrap-responsive.min.css">
+    <link rel="stylesheet" href="../vendor/bootstrap-3.2.0/css/bootstrap.min.css">
+    <!--[if lt IE 9]>
+      <script src="../vendor/html5shiv-3.7.2/html5shiv.min.js"></script>
+      <script src="../vendor/respond-1.4.2/respond.min.js"></script>
+    <![endif]-->    
     </head>
 
 <body onload="initialize();">
@@ -29,64 +32,14 @@
             <ul id="results"></ul>
         </div>
     </div>
-    <script src="../../node_modules/rx/rx.js"></script>
-    <script src="../../node_modules/rx/rx.binding.js"></script>
-    <script src="../../node_modules/rx/rx.time.js"></script>
-    <script src="../../rx.dom.js"></script>
-    <script>
-
-        function searchWikipedia (term) {
-            var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
-                + term + '&callback=JSONPCallback';
-            return Rx.DOM.Request.jsonpRequest(url);
-        }
-
-        function clearChildren (element) {
-            while (element.firstChild) {
-                element.removeChild(element.firstChild);
-            }                
-        }
-
-        function initialize () {
-            var input = document.getElementById('textInput'),
-                ul = document.getElementById('results')
-                
-            var keyup = Rx.DOM.fromEvent(input, 'keyup')
-                .select(function(ev) {
-                    return ev.target.value;
-                })
-                .where(function(text) {
-                    return text.length > 2;
-                })
-                .throttle(500, Rx.Scheduler.requestAnimationFrameScheduler)
-                .distinctUntilChanged();
-
-            var searcher = keyup.select(function (text) {
-                return searchWikipedia(text);
-            })
-            .switchLatest()
-            .where(function (data) {
-                return data.length === 2; 
-            });
-
-            searcher.subscribe(function (data) {                    
-                var results = data[1];
-
-                clearChildren(ul);
-
-                for (var i = 0, len = results.length; i < len; i++) {
-                    var li = document.createElement('li');
-                    li.innerHTML = results[i];
-                    ul.appendChild(li);
-                }
-            }, function (error) {
-                clearChildren(ul);
-                var li = document.createElement('li');
-                li.innerHTML = 'Error: ' + error.message;
-                ul.appendChild(li);
-            });
-
-        }
-    </script>        
+    <!--[if lt IE 9]>
+    <script src="../../node_modules/rx/dist/rx.lite.compat.js"></script>
+    <![endif]--> 
+    <!--[if gte IE 9]><!-->        
+    <script src="../../node_modules/rx/dist/rx.lite.js"></script>
+    <!--<![endif]-->    
+    <script src="../../node_modules/rx/dist/rx.time.js"></script>
+    <script src="../../dist/rx.dom.js"></script>
+    <script src="autocomplete.js"></script>       
     </body>
 </html>

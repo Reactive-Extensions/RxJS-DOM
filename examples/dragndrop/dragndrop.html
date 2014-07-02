@@ -7,8 +7,11 @@
     <meta name="description" content="">
     <meta name="author" content="">    
     <title>Rx for JavaScript Rocks!</title>
-    <link rel="stylesheet" href="http://ajax.aspnetcdn.com/ajax/bootstrap/2.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="http://ajax.aspnetcdn.com/ajax/bootstrap/2.3.1/css/bootstrap-responsive.min.css">
+    <link rel="stylesheet" href="../vendor/bootstrap-3.2.0/css/bootstrap.min.css">
+    <!--[if lt IE 9]>
+      <script src="../vendor/html5shiv-3.7.2/html5shiv.min.js"></script>
+      <script src="../vendor/respond-1.4.2/respond.min.js"></script>
+    <![endif]-->   
     <link rel="stylesheet" href="dragndrop.css"> 
 </head>
 <body>
@@ -20,10 +23,13 @@
         </div>
     </div>      
 
-    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.10.2.min.js"></script>
-    <script src="http://ajax.aspnetcdn.com/ajax/bootstrap/2.3.1/bootstrap.min.js"></script>
-    <script src="http://cdn.jsdelivr.net/rxjs/2.1.11/rx.js"></script>
-    <script src="../../rx.dom.js"></script>
+    <!--[if lt IE 9]>
+    <script src="../../node_modules/rx/dist/rx.lite.compat.js"></script>
+    <![endif]--> 
+    <!--[if gte IE 9]><!-->        
+    <script src="../../node_modules/rx/dist/rx.lite.js"></script>
+    <!--<![endif]-->    
+    <script src="../../dist/rx.dom.js"></script>
     <script src="dragndrop.js"></script>  
 </body>
 </html>
