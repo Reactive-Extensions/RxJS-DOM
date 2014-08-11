@@ -235,6 +235,7 @@ Rx.DOM.Request.jsonpRequest(settings);
 1. `settings` *(Object)*: An object with the following properties:
 		- `url` *(String)*: URL of the request
   		- `jsonp` *(String)*: The named callback parameter for the JSONP call
+  		- `jsonpCallback` *(String)*: Name of the function in the root object that JSONP will call. This is useful for when the JSONP callback is hardcoded and can't be changed
 
 #### Returns
 *(Observable)*: A hot observable containing the results from the JSONP call.

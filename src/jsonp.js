@@ -22,60 +22,71 @@
    *  An object with the following properties
    *   - url: URL of the request
    *   - jsonp: The named callback parameter for the JSONP call
+   *   - jsonpCallback: Callback to execute. For when the JSONP callback can't be changed
    *
    * @returns {Observable} A cold observable containing the results from the JSONP call.
    */
   var getJSONPRequestCold = ajax.jsonpRequestCold = (function () {
-      var uniqueId = 0;
-      return function (settings) {
-        return new AnonymousObservable(function (observer) {
+    var uniqueId = 0;
+    var defaultCallback = function _defaultCallback(observer, data) {
+      observer.onNext(data);
+      observer.onCompleted();
+    };
 
-          if (typeof settings === 'string') {
-            settings = { url: settings }
+    return function (settings) {
+      return new AnonymousObservable(function (observer) {
+
+        if (typeof settings === 'string') {
+          settings = { url: settings };
+        }
+        if (!settings.jsonp) {
+          settings.jsonp = 'JSONPCallback';
+        }
+
+        var head = document.getElementsByTagName('head')[0] || document.documentElement,
+          tag = document.createElement('script'),
+          handler = 'rxjscallback' + uniqueId++;
+          
+        var prevFn;
+        if (typeof settings.jsonpCallback === 'string') {
+          handler = settings.jsonpCallback;
+          prevFn = root[handler];
+        }
+
+        settings.url = settings.url.replace('=' + settings.jsonp, '=' + handler);
+
+        root[handler] = function(data) {
+          if (prevFn && typeof prevFn === 'function') {
+            prevFn(observer, data);
+          } else {
+            defaultCallback(observer, data);
           }
-          if (!settings.jsonp) {
-            settings.jsonp = 'JSONPCallback';
+        };
+
+        var cleanup = function _cleanup() {
+          tag.onload = tag.onreadystatechange = null;
+          if (head && tag.parentNode) {
+            destroy(tag);
           }
+          tag = undefined;
+          root[handler] = prevFn;
+        };
 
-          var head = document.getElementsByTagName('head')[0] || document.documentElement,
-            tag = document.createElement('script'),
-            handler = 'rxjscallback' + uniqueId++;
+        tag.src = settings.url;
+        tag.async = true;
+        tag.onload = tag.onreadystatechange = function (_, abort) {
+          if ( abort || !tag.readyState || /loaded|complete/.test(tag.readyState) ) {
+            cleanup();
+          }
+        };  
+        head.insertBefore(tag, head.firstChild);
 
-          settings.url = settings.url.replace('=' + settings.jsonp, '=' + handler);
-
-          root[handler] = function (data) {
-            observer.onNext(data);
-            observer.onCompleted();  
-          };
-
-          tag.src = settings.url;
-          tag.async = true;
-          tag.onload = tag.onreadystatechange = function (_, abort) {
-            if ( abort || !tag.readyState || /loaded|complete/.test(tag.readyState) ) {
-              tag.onload = tag.onreadystatechange = null;
-              if (head && tag.parentNode) {
-                destroy(tag);
-              }
-              tag = undefined;
-              root[handler] = undefined;
-              delete root[handler];
-            }
-          };  
-          head.insertBefore(tag, head.firstChild);
-
-          return function () {
-            if (!tag) { return; }
-            tag.onload = tag.onreadystatechange = null;
-            if (head && tag.parentNode) {
-              destroy(tag);
-            }
-            tag = undefined;
-            root[handler] = undefined;
-            delete root[handler];
-          };
-        });
-      };      
-
+        return function () {
+          if (!tag) { return; }
+          cleanup();
+        };
+      });
+    };
   })();
 
   /**
