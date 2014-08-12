@@ -18,8 +18,8 @@
             root.removeEventListener( "load", handler, false );
           };       
         } else if (document.attachEvent) {
-          document.attachEvent( "onDOMContentLoaded", handler, false );
-          root.attachEvent( "onload", handler, false );  
+          document.attachEvent( "onDOMContentLoaded", handler );
+          root.attachEvent( "onload", handler );  
           return function () {
             document.attachEvent( "DOMContentLoaded", handler );
             root.attachEvent( "load", handler );
