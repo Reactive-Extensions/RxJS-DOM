@@ -13,8 +13,8 @@
    * Creates a cold observable JSONP Request with the specified settings.
    *
    * @example 
-   *   source = Rx.DOM.Request.jsonpRequestCold('http://www.bing.com/?q=foo&JSONPRequest=?');
-   *   source = Rx.DOM.Request.jsonpRequestCold( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
+   *   source = Rx.DOM.Request.jsonpRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
+   *   source = Rx.DOM.Request.jsonpRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
    *
    * @param {Object} settings Can be one of the following:
    *
@@ -26,7 +26,7 @@
    *
    * @returns {Observable} A cold observable containing the results from the JSONP call.
    */
-  var getJSONPRequestCold = ajax.jsonpRequestCold = (function () {
+  ajax.jsonpRequest = (function () {
     var uniqueId = 0;
     var defaultCallback = function _defaultCallback(observer, data) {
       observer.onNext(data);
@@ -35,13 +35,8 @@
 
     return function (settings) {
       return new AnonymousObservable(function (observer) {
-
-        if (typeof settings === 'string') {
-          settings = { url: settings };
-        }
-        if (!settings.jsonp) {
-          settings.jsonp = 'JSONPCallback';
-        }
+        typeof settings === 'string' && (settings = { url: settings });
+        !settings.jsonp && (settings.jsonp = 'JSONPCallback');
 
         var head = document.getElementsByTagName('head')[0] || document.documentElement,
           tag = document.createElement('script'),
@@ -65,9 +60,7 @@
 
         var cleanup = function _cleanup() {
           tag.onload = tag.onreadystatechange = null;
-          if (head && tag.parentNode) {
-            destroy(tag);
-          }
+          head && tag.parentNode && destroy(tag);
           tag = undefined;
           root[handler] = prevFn;
         };
@@ -88,23 +81,3 @@
       });
     };
   })();
-
-  /**
-   * Creates a hot observable JSONP Request with the specified settings.
-   *
-   * @example 
-   *   source = Rx.DOM.Request.getJSONPRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
-   *   source = Rx.DOM.Request.getJSONPRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
-   * 
-   * @param {Object} settings Can be one of the following:
-   *
-   *  A string of the URL to make the JSONP call with the JSONPCallback=? in the url.
-   *  An object with the following properties
-   *   - url: URL of the request
-   *   - jsonp: The named callback parameter for the JSONP call
-   *
-   * @returns {Observable} A hot observable containing the results from the JSONP call.
-   */
-  ajax.jsonpRequest = function (settings) {
-    return getJSONPRequestCold(settings).publishLast().refCount();
-  };
