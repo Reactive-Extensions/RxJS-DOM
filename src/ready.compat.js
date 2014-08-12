@@ -11,25 +11,25 @@
 
       function createListener() {
         if (document.addEventListener) {
-          document.addEventListener( "DOMContentLoaded", handler, false );
-          root.addEventListener( "load", handler, false );
+          document.addEventListener( 'DOMContentLoaded', handler, false );
+          root.addEventListener( 'load', handler, false );
           return function () {
-            document.removeEventListener( "DOMContentLoaded", handler, false );
-            root.removeEventListener( "load", handler, false );
+            document.removeEventListener( 'DOMContentLoaded', handler, false );
+            root.removeEventListener( 'load', handler, false );
           };       
         } else if (document.attachEvent) {
-          document.attachEvent( "onDOMContentLoaded", handler );
-          root.attachEvent( "onload", handler );  
+          document.attachEvent( 'onDOMContentLoaded', handler );
+          root.attachEvent( 'onload', handler );  
           return function () {
-            document.attachEvent( "DOMContentLoaded", handler );
-            root.attachEvent( "load", handler );
+            document.attachEvent( 'DOMContentLoaded', handler );
+            root.attachEvent( 'load', handler );
           };                          
         } else {
           document['onload'] = handler;  
-          root.['onDOMContentLoaded'] = handler;  
+          root['onDOMContentLoaded'] = handler;  
           return function () {
             document['onload'] = null;  
-            root.['onDOMContentLoaded'] = null;  
+            root['onDOMContentLoaded'] = null;  
           };
         }        
       }

@@ -9,16 +9,16 @@
         observer.onCompleted();
       }
 
-      if (document.readyState === "complete") {
+      if (document.readyState === 'complete') {
         handler();
       } else {
-        document.addEventListener( "DOMContentLoaded", handler, false );
-        root.addEventListener( "load", handler, false );
+        document.addEventListener( 'DOMContentLoaded', handler, false );
+        root.addEventListener( 'load', handler, false );
       }
 
       return function () {
-        document.removeEventListener( "DOMContentLoaded", handler, false );
-        root.removeEventListener( "load", handler, false );
+        document.removeEventListener( 'DOMContentLoaded', handler, false );
+        root.removeEventListener( 'load', handler, false );
       };
     }).publish().refCount();
   };

@@ -47,14 +47,82 @@
     ajax = Rx.DOM.Request = {},
     hasOwnProperty = {}.hasOwnProperty;
 
+  function fixEvent(event) {
+    var stopPropagation = function () {
+      this.cancelBubble = true;
+    };
+
+    var preventDefault = function () {
+      this.bubbledKeyCode = this.keyCode;
+      if (this.ctrlKey) {
+        try {
+          this.keyCode = 0;
+        } catch (e) { }
+      }
+      this.defaultPrevented = true;
+      this.returnValue = false;
+      this.modified = true;
+    };
+
+    event || (event = root.event);
+    if (!event.target) {
+      event.target = event.target || event.srcElement; 
+
+      if (event.type == 'mouseover') {
+        event.relatedTarget = event.fromElement;
+      }
+      if (event.type == 'mouseout') {
+        event.relatedTarget = event.toElement;
+      }
+      // Adding stopPropogation and preventDefault to IE
+      if (!event.stopPropagation){
+        event.stopPropagation = stopPropagation;
+        event.preventDefault = preventDefault;
+      }
+      // Normalize key events
+      switch(event.type){
+        case 'keypress':
+          var c = ('charCode' in event ? event.charCode : event.keyCode);
+          if (c == 10) {
+            c = 0;
+            event.keyCode = 13;
+          } else if (c == 13 || c == 27) {
+            c = 0; 
+          } else if (c == 3) {
+            c = 99; 
+          }
+          event.charCode = c;
+          event.keyChar = event.charCode ? String.fromCharCode(event.charCode) : '';
+          break;
+      }                    
+    }
+
+    return event;
+  }
+
   function createListener (element, name, handler) {
+    // Standards compliant
     if (element.addEventListener) {
       element.addEventListener(name, handler, false);
       return disposableCreate(function () {
         element.removeEventListener(name, handler, false);
       });
+    } 
+    if (element.attachEvent) {
+      // IE Specific
+      var innerHandler = function (event) {
+        handler(fixEvent(event));
+      };
+      element.attachEvent('on' + name, innerHandler);
+      return disposableCreate(function () {
+        element.detachEvent('on' + name, innerHandler);
+      });         
     }
-    throw new Error('No listener found');
+    // Level 1 DOM Events      
+    element['on' + name] = handler;
+    return disposableCreate(function () {
+      element['on' + name] = null;
+    });
   }
 
   function createEventListener (el, eventName, handler) {
@@ -72,6 +140,7 @@
     return disposables;
   }
 
+
   /**
    * Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
    *
@@ -84,7 +153,6 @@
    * @returns {Observable} An observable sequence of events from the specified element and the specified event.
    */
   var fromEvent = dom.fromEvent = function (element, eventName, selector) {
-
     return new AnonymousObservable(function (observer) {
       return createEventListener(
         element, 
@@ -136,20 +204,41 @@
         observer.onCompleted();
       }
 
-      if (document.readyState === 'complete') {
-        handler();
-      } else {
-        document.addEventListener( 'DOMContentLoaded', handler, false );
-        root.addEventListener( 'load', handler, false );
+      function createListener() {
+        if (document.addEventListener) {
+          document.addEventListener( 'DOMContentLoaded', handler, false );
+          root.addEventListener( 'load', handler, false );
+          return function () {
+            document.removeEventListener( 'DOMContentLoaded', handler, false );
+            root.removeEventListener( 'load', handler, false );
+          };       
+        } else if (document.attachEvent) {
+          document.attachEvent( 'onDOMContentLoaded', handler );
+          root.attachEvent( 'onload', handler );  
+          return function () {
+            document.attachEvent( 'DOMContentLoaded', handler );
+            root.attachEvent( 'load', handler );
+          };                          
+        } else {
+          document['onload'] = handler;  
+          root['onDOMContentLoaded'] = handler;  
+          return function () {
+            document['onload'] = null;  
+            root['onDOMContentLoaded'] = null;  
+          };
+        }        
       }
 
-      return function () {
-        document.removeEventListener( 'DOMContentLoaded', handler, false );
-        root.removeEventListener( 'load', handler, false );
-      };
+      var returnFn = noop;
+      if (document.readyState === "complete") {
+        handler();
+      } else {
+        returnFn = createListener();
+      }
+
+      return returnFn;
     }).publish().refCount();
   };
-
 
   /* @private 
    * Gets the proper XMLHttpRequest for support for older IE 
