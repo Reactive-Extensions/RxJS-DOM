@@ -10,7 +10,7 @@
       }
 
       if (document.readyState === 'complete') {
-        handler();
+        setTimeout(handler, 0);
       } else {
         document.addEventListener( 'DOMContentLoaded', handler, false );
         root.addEventListener( 'load', handler, false );

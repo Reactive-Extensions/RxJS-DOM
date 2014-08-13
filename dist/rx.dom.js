@@ -115,6 +115,10 @@
       events += " pointerdown pointerup pointermove pointerover pointerout pointerenter pointerleave";
     }
 
+    if (root.TouchEvent) {
+      events += " touchstart touchend touchmove touchcancel";
+    }
+
     events = events.split(' ');
 
     for(var i = 0, len = events.length; i < len; i++) {
@@ -137,7 +141,7 @@
       }
 
       if (document.readyState === 'complete') {
-        handler();
+        setTimeout(handler, 0);
       } else {
         document.addEventListener( 'DOMContentLoaded', handler, false );
         root.addEventListener( 'load', handler, false );

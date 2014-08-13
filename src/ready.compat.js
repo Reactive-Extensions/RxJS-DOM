@@ -36,7 +36,7 @@
 
       var returnFn = noop;
       if (document.readyState === "complete") {
-        handler();
+        setTimeout(handler, 0);
       } else {
         returnFn = createListener();
       }
