@@ -4,10 +4,15 @@
     var opacity = 1;
     element.style.opacity = opacity;
 
-    var subscription = Rx.Scheduler.timeout.schedulePeriodic(100, function () {
-      opacity === 0 && subscription.dispose();
+    var subscription = Rx.Scheduler.timeout.scheduleRecursiveWithRelative(100, function (self) {
+      if (opacity === 0) {
+        subscription.dispose();
+        return;
+      }
+
       opacity -= 0.1;
       element.style.opacity = opacity;
+      self(100);
     });
   }
 
@@ -19,7 +24,7 @@
 
     Rx.DOM.keyup(document)
       .pluck('keyCode')
-      .bufferWithCount(10, 10)
+      .bufferWithCount(10, 1)
       .filter(function (data) { return data.toString() === codes.toString(); })
       .subscribe(function () {
         result.innerHTML = 'KONAMI!';
