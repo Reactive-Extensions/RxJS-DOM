@@ -1,4 +1,5 @@
 (function (window, undefined) {
+
   function getOffset(element) {
     var doc = element.ownerDocument,
       docElem = doc.documentElement,
@@ -11,13 +12,13 @@
     return { top : scrollTop  - clientTop, left: scrollLeft - clientLeft };
   }
 
-  function main () {
+  function initialize () {
     var i,
       text = 'time flies like an arrow',
       container = document.getElementById('textContainer'),
-      mouseMove = Rx.Observable.fromEvent(document, 'mousemove'),
+      mouseMove = Rx.DOM.mousemove(document),
 
-      mouseMoveOffset = mouseMove.select(function(value) {
+      mouseMoveOffset = mouseMove.map(function(value) {
           var offset = getOffset(container);
           return {
            offsetX : value.clientX - offset.left + document.documentElement.scrollLeft,
@@ -33,12 +34,12 @@
         container.appendChild(s);                        
 
         mouseMoveOffset.delay(i * 100).subscribe(function(mouseEvent) {
-          s.style.top = mouseEvent.offsetY + 'px';
+          s.style.top  = mouseEvent.offsetY + 'px';
           s.style.left = mouseEvent.offsetX + i * 10 + 15 + 'px';
         });
       })(i);
     }
   }
 
-  window.onload = main;
+  Rx.DOM.ready().subscribe(initialize);
 }(window))

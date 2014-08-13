@@ -9,5 +9,4 @@
     Scheduler = Rx.Scheduler,
     defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }()),
     dom = Rx.DOM = {},
-    ajax = Rx.DOM.Request = {},
     hasOwnProperty = {}.hasOwnProperty;

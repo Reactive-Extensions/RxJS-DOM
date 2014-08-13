@@ -1,10 +1,6 @@
 (function (window, undefined) {
 
-  function clearChildren (e) {
-    while (e.firstChild) { e.removeChild(e.firstChild); }                
-  }
-
-  function main() {
+  function initialize() {
     var ul = document.getElementById('results');
 
     Rx.Observable.range(0, 10, Rx.Scheduler.mutationObserver)
@@ -15,6 +11,6 @@
       });
   }
 
-  window.onload = main;
+  Rx.DOM.ready().subscribe(initialize);
 
 }(window));
