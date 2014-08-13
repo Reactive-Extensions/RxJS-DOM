@@ -13,8 +13,8 @@
    * Creates a cold observable JSONP Request with the specified settings.
    *
    * @example 
-   *   source = Rx.DOM.Request.jsonpRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
-   *   source = Rx.DOM.Request.jsonpRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
+   *   source = Rx.DOM.jsonpRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
+   *   source = Rx.DOM.jsonpRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
    *
    * @param {Object} settings Can be one of the following:
    *
@@ -26,7 +26,7 @@
    *
    * @returns {Observable} A cold observable containing the results from the JSONP call.
    */
-  ajax.jsonpRequest = (function () {
+  dom.jsonpRequest = (function () {
     var uniqueId = 0;
     var defaultCallback = function _defaultCallback(observer, data) {
       observer.onNext(data);

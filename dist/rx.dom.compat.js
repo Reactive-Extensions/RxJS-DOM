@@ -263,8 +263,8 @@
    * Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
    *
    * @example 
-   *   source = Rx.DOM.Request.ajaxCold('/products');
-   *   source = Rx.DOM.Request.ajaxCold( url: 'products', method: 'GET' });
+   *   source = Rx.DOM.ajax('/products');
+   *   source = Rx.DOM.ajax( url: 'products', method: 'GET' });
    *     
    * @param {Object} settings Can be one of the following:
    *
@@ -277,7 +277,7 @@
    *
    * @returns {Observable} An observable sequence containing the XMLHttpRequest.
   */
-  var ajaxRequest = ajax.ajax = function (settings) {
+  var ajaxRequest = dom.ajax = function (settings) {
     return new AnonymousObservable(function (observer) {
       var isDone = false;
       if (typeof settings === 'string') {
@@ -347,7 +347,7 @@
    * @param {Object} body The body to POST
    * @returns {Observable} The observable sequence which contains the response from the Ajax POST.
    */
-  ajax.post = function (url, body) {
+  dom.post = function (url, body) {
     return ajaxRequest({ url: url, body: body, method: 'POST', async: true });
   };
   
@@ -357,7 +357,7 @@
    * @param {String} url The URL to GET
    * @returns {Observable} The observable sequence which contains the response from the Ajax GET.
    */   
-  var observableGet = ajax.get = function (url) {
+  var observableGet = dom.get = function (url) {
     return ajaxRequest({ url: url, method: 'GET', async: true });
   };
 
@@ -369,7 +369,7 @@
      * @param {String} url The URL to GET
      * @returns {Observable} The observable sequence which contains the parsed JSON.
      */       
-    ajax.getJSON = function (url) {
+    dom.getJSON = function (url) {
       return observableGet(url).map(function (xhr) {
         return JSON.parse(xhr.responseText);
       });
@@ -391,8 +391,8 @@
    * Creates a cold observable JSONP Request with the specified settings.
    *
    * @example 
-   *   source = Rx.DOM.Request.jsonpRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
-   *   source = Rx.DOM.Request.jsonpRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
+   *   source = Rx.DOM.jsonpRequest('http://www.bing.com/?q=foo&JSONPRequest=?');
+   *   source = Rx.DOM.jsonpRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPRequest' });
    *
    * @param {Object} settings Can be one of the following:
    *
@@ -404,7 +404,7 @@
    *
    * @returns {Observable} A cold observable containing the results from the JSONP call.
    */
-  ajax.jsonpRequest = (function () {
+  dom.jsonpRequest = (function () {
     var uniqueId = 0;
     var defaultCallback = function _defaultCallback(observer, data) {
       observer.onNext(data);

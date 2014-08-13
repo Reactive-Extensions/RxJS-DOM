@@ -17,7 +17,7 @@ module('Ajax Tests', {
 
 
 test('ajax success no settings', function () {
-  var source = Rx.DOM.Request.ajax('/products');
+  var source = Rx.DOM.ajax('/products');
 
   source.subscribe(
     function (x) {
@@ -46,7 +46,7 @@ test('ajax success no settings', function () {
 });
 
 test('ajax failure no settings', function () {
-  var source = Rx.DOM.Request.ajax('/products');
+  var source = Rx.DOM.ajax('/products');
 
   source.subscribe(
     function () {
@@ -75,7 +75,7 @@ test('ajax failure no settings', function () {
 });
 
 test('ajax failure settings', function () {
-  var source = Rx.DOM.Request.ajax({
+  var source = Rx.DOM.ajax({
     url: '/products',
     method: 'POST',
     headers: {
@@ -116,7 +116,7 @@ test('ajax failure settings', function () {
 
 
 test('get success', function () {
-  var source = Rx.DOM.Request.get('/products');
+  var source = Rx.DOM.get('/products');
 
   source.subscribe(
     function (x) {
@@ -145,7 +145,7 @@ test('get success', function () {
 });
 
 test('get failure', function () {
-  var source = Rx.DOM.Request.get('/products');
+  var source = Rx.DOM.get('/products');
 
   source.subscribe(
     function () {
@@ -175,7 +175,7 @@ test('get failure', function () {
 
 
 test('post success', function () {
-  var source = Rx.DOM.Request.post('/products', { id: 123 });
+  var source = Rx.DOM.post('/products', { id: 123 });
 
   source.subscribe(
     function (x) {
@@ -207,7 +207,7 @@ test('post success', function () {
 });
 
 test('post failure', function () {
-  var source = Rx.DOM.Request.post('/products', { id: 123 });
+  var source = Rx.DOM.post('/products', { id: 123 });
 
   source.subscribe(
     function () {
@@ -240,7 +240,7 @@ test('post failure', function () {
 
 
 test('getJSON success', function () {
-  var source = Rx.DOM.Request.getJSON('/products');
+  var source = Rx.DOM.getJSON('/products');
 
   source.subscribe(
     function (x) {
@@ -258,7 +258,7 @@ test('getJSON success', function () {
 });
 
 test('getJSON failure', function () {
-  var source = Rx.DOM.Request.getJSON('/products');
+  var source = Rx.DOM.getJSON('/products');
 
   source.subscribe(
     function () {

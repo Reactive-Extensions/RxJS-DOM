@@ -11,7 +11,7 @@ asyncTest('jsonpRequest with jsonp callback success', function () {
     'testCallback([{ "id": 123 }])'
   );
   
-  var source = Rx.DOM.Request.jsonpRequest({
+  var source = Rx.DOM.jsonpRequest({
     url: fakeScript,
     jsonpCallback: 'testCallback'
   });
@@ -36,7 +36,7 @@ asyncTest('jsonpRequest without jsonp callback success', function () {
     'testCallback([{ "id": 123 }])'
   );
 
-  var source = Rx.DOM.Request.jsonpRequest({
+  var source = Rx.DOM.jsonpRequest({
     url: fakeScript,
     jsonpCallback: 'testCallback'
   });

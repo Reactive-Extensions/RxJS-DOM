@@ -68,7 +68,7 @@ module.exports = function (grunt) {
         },
         compat: {
           src: ['<banner>', 'dist/rx.dom.compat.js'],
-          dest: 'dist/rx.dom.min.js'
+          dest: 'dist/rx.dom.compat.min.js'
         },              
       },
       qunit: {
