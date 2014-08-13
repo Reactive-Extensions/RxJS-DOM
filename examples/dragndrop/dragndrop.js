@@ -1,14 +1,14 @@
 (function (window, undefined) {
 
-  function main () {
+  function initialize () {
     var dragTarget = document.getElementById('dragTarget');
 
     // Get the three major events
-    var mouseup = Rx.Observable.fromEvent(dragTarget, 'mouseup');
-    var mousemove = Rx.Observable.fromEvent(document, 'mousemove');
-    var mousedown = Rx.Observable.fromEvent(dragTarget, 'mousedown');
+    var mouseup   = Rx.DOM.mouseup(dragTarget);
+    var mousemove = Rx.DOM.mousemove(document);
+    var mousedown = Rx.DOM.mousedown(dragTarget);
 
-    var mousedrag = mousedown.selectMany(function (md) {
+    var mousedrag = mousedown.flatMap(function (md) {
 
       // calculate offsets when mouse down
       var startX = md.offsetX, startY = md.offsetY;
@@ -31,6 +31,6 @@
     });
   }
 
-  window.onload = main;
+  Rx.DOM.ready().subscribe(initialize);
 
 }(window));
