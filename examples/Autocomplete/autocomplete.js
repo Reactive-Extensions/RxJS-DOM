@@ -2,26 +2,34 @@
 
   function searchWikipedia (term) {
     var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
-      + term + '&callback=JSONPCallback';
-    return Rx.DOM.Request.jsonpRequest(url);
+      + encodeURIComponent(term) + '&callback=JSONPCallback';
+    return Rx.DOM.jsonpRequest(url);
   }
 
   function clearChildren (e) {
     while (e.firstChild) { e.removeChild(e.firstChild); }                
   }
 
+  function createChildren(results, parent) {
+    for (var i = 0, len = results.length; i < len; i++) {
+      createElement(results[i], parent);
+    }    
+  }
+
+  function createElement(text, parent) {
+    var li = document.createElement('li');
+    li.innerHTML = text;
+    parent.appendChild(li);
+  }
+
   function initialize () {
     var input = document.getElementById('textInput'),
-      ul = document.getElementById('results')
+        ul = document.getElementById('results');
         
-    var keyup = Rx.Observable.fromEvent(input, 'keyup')
-      .map(function(ev) {
-        return ev.target.value;
-      })
-      .filter(function(text) {
-        return text.length > 2;
-      })
-      .throttle(500, Rx.Scheduler.requestAnimationFrameScheduler)
+    var keyup = Rx.DOM.keyup(input)
+      .map(function (ev) { return ev.target.value; })
+      .filter(function(text) { return text.length > 2; })
+      .throttle(500)
       .distinctUntilChanged();
 
     var searcher = keyup.flatMapLatest(searchWikipedia).map(function(d) { return d[1]; });
@@ -29,21 +37,14 @@
     searcher.subscribe(
       function (results) {                    
         clearChildren(ul);
-
-        for (var i = 0, len = results.length; i < len; i++) {
-          var li = document.createElement('li');
-          li.innerHTML = results[i];
-          ul.appendChild(li);
-        }
+        createChildren(results, ul);
       }, 
       function (error) {
         clearChildren(ul);
-        var li = document.createElement('li');
-        li.innerHTML = 'Error: ' + error.message;
-        ul.appendChild(li);
+        createElement('Error: ' + error.message, ul);
       }
     );
   }
 
-  window.onload = initialize;
+  Rx.DOM.ready().subscribe(initialize);
 }(window));

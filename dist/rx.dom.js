@@ -122,10 +122,11 @@
     events = events.split(' ');
 
     for(var i = 0, len = events.length; i < len; i++) {
-      var e = events[i];
-      dom[e] = function (element, selector) {
-        return fromEvent(element, e, selector);
-      };
+      (function (e) {
+        dom[e] = function (element, selector) {
+          return fromEvent(element, e, selector);
+        };
+      }(events[i]))
     }
   }());
 
