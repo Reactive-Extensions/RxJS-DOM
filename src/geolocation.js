@@ -1,5 +1,5 @@
   if ('navigator' in root && 'geolocation' in root.navigator) {
-    Rx.DOM.Geolocation = {
+    Rx.DOM.geolocation = {
 
       /**
        * Obtains the geographic position, in terms of latitude and longitude coordinates, of the device.

@@ -19,8 +19,7 @@
     }
   ],
   "dependencies": {
-    "rx": "*",
-    "jsdom": "*"
+    "rx": "*"
   },
   "devDependencies": {
     "grunt-cli": "*",
