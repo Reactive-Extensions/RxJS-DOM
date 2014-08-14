@@ -35,10 +35,9 @@ To download the source of the HTML DOM Bindings for the Reactive Extensions for 
 
 Let's walk through a simple yet powerful example of the Reactive Extensions for JavaScript Bindings for HTML, autocomplete.  In this example, we will take user input from a textbox and trim and throttle the input so that we're not overloading the server with requests for suggestions.
 
-We'll start out with a basic skeleton for our application with script references to RxJS Lite, RxJS Time-based methods, and the RxJS Bindings for HTML DOM, along with a textbox for input and a list for our results.
+We'll start out with a basic skeleton for our application with script references to RxJS Lite based methods, and the RxJS Bindings for HTML DOM, along with a textbox for input and a list for our results.
 
 	<script type="text/javascript" src="rx.lite.js"></script>
-	<script type="text/javascript" src="rx.time.js"></script>
 	<script type="text/javascript" src="rx.dom.js"><script>
 	<script type="text/javascript">
 		
@@ -48,10 +47,10 @@ We'll start out with a basic skeleton for our application with script references
 	<ul id="results"></ul>
 	...
 
-The goal here is to take the input from our textbox and throttle it in a way that it doesn't overload the service with requests.  To do that, we'll get the reference to the textInput using the document.getElementById moethod, then bind to the 'keyup' event using the `Rx.Observable.fromEvent` method from base RxJS which then takes the DOM element event handler and transforms it into an RxJS Observable. 
+The goal here is to take the input from our textbox and throttle it in a way that it doesn't overload the service with requests.  To do that, we'll get the reference to the textInput using the document.getElementById moethod, then bind to the 'keyup' event using the `Rx.DOM.fromEvent` specialization shortcut for keyups called `Rx.DOM.keyup` which then takes the DOM element event handler and transforms it into an RxJS Observable. 
 ```js
 var textInput = document.getElementById('textInput');
-var throttledInput = Rx.Observable.fromEvent(textInput, 'keyup');
+var throttledInput = Rx.DOM.keyup(textInput);
 ```
 Since we're only interested in the text, we'll use the `select` or `map` method to take the event object and return the target's value.  
 ```js
@@ -77,7 +76,7 @@ Putting it all together, our throttledInput looks like the following:
 
 ```js
 var textInput = document.getElementById('textInput');
-var throttledInput = Rx.Observable.fromEvent(textInput, 'keyup')
+var throttledInput = Rx.DOM.keyup(textInput)
 	.map( function (ev) {
 		return textInput.value;
 	})
@@ -92,19 +91,16 @@ Now that we have the throttled input from the textbox, we need to query our serv
 
 ```js
 function searchWikipedia(term) {
-  var cleanTerm = global.encodeURIComponent(term);
   var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
-    + cleanTerm + '&callback=JSONPCallback';
-  return Rx.DOM.Request.jsonpRequest(url);
+    + encodeURIComponent(term) + '&callback=JSONPCallback';
+  return Rx.Request.jsonpRequest(url);
 }
 ```
 
 Now that the Wikipedia Search has been wrapped, we can tie together throttled input and our service call.  In this case, we will call select on the throttledInput to then take the text from our textInput and then use it to query Wikipedia, filtering out empty records.  Finally, to deal with concurrency issues, we'll need to ensure we're getting only the latest value.  Issues can arise with asynchronous programming where an earlier value, if not cancelled properly, can be returned before the latest value is returned, thus causing bugs.  To ensure that this doesn't happen, we have the `flatMapLatest` method which returns only the latest value.
 
 ```js
-var suggestions = throttledInput.flatMapLatest( function (text) {
-	return searchWikipedia(text);
-});
+var suggestions = throttledInput.flatMapLatest(searchWikipedia);
 ```
 
 Finally, we'll subscribe to our observable by calling subscribe which will receive the results and put them into an unordered list.  We'll also handle errors, for example if the server is unavailable by passing in a second function which handles the errors.
@@ -153,7 +149,7 @@ You can contribute by reviewing and sending feedback on code checkins, suggestin
 
 ## LICENSE
 
-Copyright 2013 Microsoft Open Technologies
+Copyright 2014 Microsoft Open Technologies
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

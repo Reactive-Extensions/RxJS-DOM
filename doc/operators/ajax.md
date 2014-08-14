@@ -38,7 +38,7 @@ Rx.DOM.Request.ajax('/products')
 ### Location
 
 File:
-- [`/src/ajax.md`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax.js)
+- [`/src/ajax.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
@@ -56,4 +56,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- None
+- [`/tests/tests.ajax.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.ajax.js)
