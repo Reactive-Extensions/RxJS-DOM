@@ -44,7 +44,8 @@
     Scheduler = Rx.Scheduler,
     defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }()),
     dom = Rx.DOM = {},
-    hasOwnProperty = {}.hasOwnProperty;
+    hasOwnProperty = {}.hasOwnProperty,
+    noop = Rx.helpers.noop;
 
   function createListener (element, name, handler) {
     if (element.addEventListener) {
@@ -638,7 +639,7 @@ if (BrowserMutationObserver) {
 
 
   if ('navigator' in root && 'geolocation' in root.navigator) {
-    Rx.DOM.Geolocation = {
+    Rx.DOM.geolocation = {
 
       /**
        * Obtains the geographic position, in terms of latitude and longitude coordinates, of the device.

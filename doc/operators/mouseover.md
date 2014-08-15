@@ -1,26 +1,25 @@
-### `Rx.DOM.fromEvent(element, eventName, [selector])`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/fromevent.js "View in source") 
+### `Rx.DOM.mouseover(element, [selector])`
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events.js "View in source") 
 
-Creates an observable sequence by adding an event listener to the matching DOMElement or DOMNodeList.
+Creates an observable sequence by adding an event listener to the matching DOMElement or DOMNodeList for the `mouseover` event.
 
 #### Arguments
 1. `element` *(`Any`)*: The DOMElement, DOMNodeList to attach a listener. 
-2. `eventName` *(`String`)*: The event name to attach the observable sequence.
-3. `[selector]` *(`Function`)*: A selector which takes the arguments from the event handler to produce a single item to yield on next.
+2. `[selector]` *(`Function`)*: A selector which takes the arguments from the event handler to produce a single item to yield on next.
 
 #### Returns
-*(`Observable`)*: An observable sequence of events from the specified element and the specified event.
+*(`Observable`)*: An observable sequence of events from the specified element and the `mouseover` event.
 
 #### Example
 
 ```js
-var input = document.querySelectorAll('table tr td');
+var input = document.getElementById('input');
 
-var source = Rx.DOM.fromEvent(input, 'click');
+var source = Rx.DOM.mouseover(input);
 
 var subscription = source.subscribe(
     function (x) {
-        console.log('Next: Clicked!');
+        console.log('Next!');
     },
     function (err) {
         console.log('Error: ' + err);   
@@ -33,8 +32,7 @@ var subscription = source.subscribe(
 ### Location
 
 File:
-- [`/src/fromevent.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/fromevent.js)
-- [`/src/fromevent.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/fromevent.compat.js)
+- [`/src/events.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
@@ -52,4 +50,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/fromevent.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/fromevent.js)
+- [`/tests/events.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/events.js)

@@ -1,21 +1,21 @@
-### Rx.DOM.get(url)`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L248-L250 "View in source")
+### `Rx.DOM.Request.getJSON(url)`
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax.js "View in source") 
 
-Creates an observable sequence from an Ajax GET Request with the body.  This is just a shortcut to the [`Rx.DOM.ajax`](ajax.md) method with the GET method.
+Creates an observable sequence from JSON from an Ajax request.  This is just a shortcut to the [`Rx.DOM.ajax`](ajax.md) method with the GET method and parsing the `responseText` as JSON.
 
 #### Arguments
 1. `url` *(String)*: A string of the URL to make the Ajax call.
 
 #### Returns
-*(Observable)*: The observable sequence which contains the response from the Ajax GET.
+*(Observable)*: The observable sequence which contains the parsed JSON.
 
 #### Example
 ```js
-Rx.DOM.Request.get('/products')
+Rx.Request.getJSON('/products')
   .subscribe(
-    function (xhr) {
-      var text = xhr.responseText;
-      console.log(text);
+    function (data) {
+      // Log data length
+      console.log(data.length);
     },
     function (err) {
       // Log the error

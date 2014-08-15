@@ -1,32 +1,26 @@
-### Rx.DOM.get(url)`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L248-L250 "View in source")
+### `Rx.Scheduler.requestAnimationFrame`
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/requestanimationframescheduler.js "View in source") 
 
-Creates an observable sequence from an Ajax GET Request with the body.  This is just a shortcut to the [`Rx.DOM.ajax`](ajax.md) method with the GET method.
-
-#### Arguments
-1. `url` *(String)*: A string of the URL to make the Ajax call.
-
-#### Returns
-*(Observable)*: The observable sequence which contains the response from the Ajax GET.
+Gets an `Rx.Scheduler` that schedules schedules work on the `window.requestAnimationFrame` for immediate actions.
 
 #### Example
 ```js
-Rx.DOM.Request.get('/products')
-  .subscribe(
-    function (xhr) {
-      var text = xhr.responseText;
-      console.log(text);
-    },
-    function (err) {
-      // Log the error
-    }
-  );
+var obs = Rx.Observable.return(
+  42, 
+  Rx.Scheduler.requestAnimationFrame);
+
+obs.subscribe(function (x) {
+  // Scheduled using requestAnimationFrame
+  console.log(x);
+});
+
+// => 42
 ```
 
 ### Location
 
 File:
-- [`/src/ajax.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax.js)
+- [`/src/requestanimationframescheduler.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/requestanimationframescheduler.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
@@ -44,4 +38,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.ajax.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.ajax.js)
+- [`/tests/tests.requestanimationframescheduler.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.requestanimationframescheduler.js)

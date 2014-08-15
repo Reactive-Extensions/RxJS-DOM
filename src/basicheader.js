@@ -9,4 +9,5 @@
     Scheduler = Rx.Scheduler,
     defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }()),
     dom = Rx.DOM = {},
-    hasOwnProperty = {}.hasOwnProperty;
+    hasOwnProperty = {}.hasOwnProperty,
+    noop = Rx.helpers.noop;

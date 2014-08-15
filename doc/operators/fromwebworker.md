@@ -1,32 +1,29 @@
-### Rx.DOM.get(url)`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/rx.dom.js#L248-L250 "View in source")
+### `Rx.DOM.fromWebWorker(url)`
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/webworker.js "View in source") 
 
-Creates an observable sequence from an Ajax GET Request with the body.  This is just a shortcut to the [`Rx.DOM.ajax`](ajax.md) method with the GET method.
+Creates a Web Worker with a given URL as a Subject.
 
 #### Arguments
-1. `url` *(String)*: A string of the URL to make the Ajax call.
+1. `url` *(`String`)*: The URL of the Web Worker.
 
 #### Returns
-*(Observable)*: The observable sequence which contains the response from the Ajax GET.
+*(`Subject`)*: A Subject which wraps a Web Worker.
 
 #### Example
 ```js
-Rx.DOM.Request.get('/products')
-  .subscribe(
-    function (xhr) {
-      var text = xhr.responseText;
-      console.log(text);
-    },
-    function (err) {
-      // Log the error
-    }
-  );
+var worker = Rx.DOM.fromWebWorker('worker.js');
+
+worker.subscribe(function (e) {
+  console.log(e.data);
+});
+
+worker.onNext('some data');
 ```
 
 ### Location
 
 File:
-- [`/src/ajax.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax.js)
+- [`/src/webworker.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/webworker.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
@@ -44,4 +41,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.ajax.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.ajax.js)
+- [`/tests/tests.webworker.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.webworker.js)
