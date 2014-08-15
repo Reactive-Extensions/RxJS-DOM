@@ -1,4 +1,4 @@
-RxJS-DOM <sup>3.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript 
+RxJS-DOM <sup>4.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript 
 ==========================================================
 ## OVERVIEW
 
