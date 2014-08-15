@@ -15,12 +15,12 @@
     <tags>Rx RxJS Reactive Extensions Observable HTML5 HTML Ajax WebSockets WebWorkers</tags>
     <dependencies>
       <!-- Automatically updated by build, keeping fixed dev build number here in case of local build -->
-      <dependency id="RxJS-Main" version="2.1" />
-      <dependency id="RxJS-Binding" version="2.1" />
+      <dependency id="RxJS-Main" version="2.3" />
+      <dependency id="RxJS-Binding" version="2.3" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\rx.dom.js" target="content\Scripts\rx.dom.js" />
-    <file src="..\..\rx.dom.min.js" target="content\Scripts\rx.dom.min.js" />
+    <file src="..\..\dist\rx.dom.js" target="content\Scripts\rx.dom.js" />
+    <file src="..\..\dist\rx.dom.min.js" target="content\Scripts\rx.dom.min.js" />
   </files>
 </package>
