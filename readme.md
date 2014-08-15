@@ -9,7 +9,7 @@ RxJS-DOM <sup>4.0</sup> - HTML DOM Bindings for the Reactive Extensions for Java
 ==========================================================
 ## OVERVIEW
 
-This project provides Reactive Extensions for JavaScript (RxJS) bindings for HTML DOM objects to abstract over the event binding and Ajax requests.  The RxJS libraries are not included with this release and must be installed separately.
+This project provides Reactive Extensions for JavaScript (RxJS) bindings for HTML DOM objects to abstract over the event binding, Ajax requests, Web Sockets, Web Workers, Server-Sent Events, Geolocation and more.  The RxJS libraries are not included with this release and must be installed separately.
 
 ## GETTING STARTED
 

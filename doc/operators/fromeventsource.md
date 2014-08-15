@@ -12,27 +12,23 @@ This method wraps an EventSource as an observable sequence which is used to send
 
 #### Example
 ```js
-// Using a function for the open
+// Not handling the open event
 var source = Rx.DOM.fromEventSource('foo.php');
 
 source.subscribe(function (e) {
   console.log('Received data: ' + e.data);
 });
 
-
 // Using an observer for the open
 var observer = Rx.Observer.create(function (e) {
   console.log('Opening');
 });
 
-// Using a function for the open
 var source = Rx.DOM.fromEventSource('foo.php', observer);
 
-socket.subscribe(function (e) {
+source.subscribe(function (e) {
   console.log('Received data: ' + e.data);
 });
-
-socket.onNext('data');
 ```
 
 ### Location
