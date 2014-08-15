@@ -18,42 +18,42 @@ There are a number of ways to get started with the HTML DOM Bindings for RxJS.  
 ### Download the Source
 
 To download the source of the HTML DOM Bindings for the Reactive Extensions for JavaScript, type in the following:
-
-    git clone https://github.com/Reactive-Extensions/rxjs-dom.git
-    cd ./rxjs-dom
-
+```bash
+git clone https://github.com/Reactive-Extensions/rxjs-dom.git
+cd ./rxjs-dom
+```
 ### Installing with [NPM](https://npmjs.org/)
-
-	npm install rx-dom
-
+```bash
+npm install rx-dom
+```
 ### Installing with [Bower](http://bower.io/)
-
-	bower install rxjs-dom
-
+```bash
+bower install rxjs-dom
+```
 ### Installing with [Jam](http://jamjs.org/)
-	
-	jam install rx-dom
-
+```bash	
+jam install rx-dom
+```
 ### Installing with [NuGet](http://nuget.org)
-
-	PM> Install-Package RxJS-Bridges-HTML	
-
+```bash
+PM> Install-Package RxJS-Bridges-HTML	
+```
 ### Getting Started with the HTML DOM Bindings
 
 Let's walk through a simple yet powerful example of the Reactive Extensions for JavaScript Bindings for HTML, autocomplete.  In this example, we will take user input from a textbox and trim and throttle the input so that we're not overloading the server with requests for suggestions.
 
 We'll start out with a basic skeleton for our application with script references to RxJS Lite based methods, and the RxJS Bindings for HTML DOM, along with a textbox for input and a list for our results.
-
-	<script type="text/javascript" src="rx.lite.js"></script>
-	<script type="text/javascript" src="rx.dom.js"><script>
-	<script type="text/javascript">
-		
-	</script>
-	...
-	<input id="textInput" type="text"></input>
-	<ul id="results"></ul>
-	...
-
+```html
+<script type="text/javascript" src="rx.lite.js"></script>
+<script type="text/javascript" src="rx.dom.js"><script>
+<script type="text/javascript">
+	
+</script>
+...
+<input id="textInput" type="text"></input>
+<ul id="results"></ul>
+...
+```
 The goal here is to take the input from our textbox and throttle it in a way that it doesn't overload the service with requests.  To do that, we'll get the reference to the textInput using the document.getElementById moethod, then bind to the 'keyup' event using the `Rx.DOM.fromEvent` specialization shortcut for keyups called `Rx.DOM.keyup` which then takes the DOM element event handler and transforms it into an RxJS Observable. 
 ```js
 var textInput = document.getElementById('textInput');
