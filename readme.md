@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/Reactive-Extensions/RxJS-DOM.png)](https://travis-ci.org/Reactive-Extensions/RxJS)
-[![GitHub version](http://img.shields.io/github/tag/reactive-extensions/rxjs-DOM.svg)](https://github.com/Reactive-Extensions/RxJS)
+[![Build Status](https://travis-ci.org/Reactive-Extensions/RxJS-DOM.png)](https://travis-ci.org/Reactive-Extensions/RxJS-DOM)
+[![GitHub version](http://img.shields.io/github/tag/reactive-extensions/rxjs-dom.svg)](https://github.com/Reactive-Extensions/RxJS-DOM)
 [![NPM version](http://img.shields.io/npm/v/rx-dom.svg)](https://npmjs.org/package/rx)
 [![Downloads](http://img.shields.io/npm/dm/rx-dom.svg)](https://npmjs.org/package/rx)
 [![NuGet](http://img.shields.io/nuget/v/RxJS-Bridges-HTML.svg)](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
