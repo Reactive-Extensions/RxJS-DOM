@@ -64,6 +64,9 @@ This section contains the reference documentation for the Reactive Extensions fo
 - [`Rx.DOM.post`](operators/post.md)
 - [`Rx.DOM.jsonpRequest`](operators/jsonprequest.md)
 
+Server-Sent Events
+- [`Rx.DOM.fromEventSource`](operators/fromeventsource.md)
+
 Web Sockets
 
 - [`Rx.DOM.fromWebSocket`](operators/fromwebsocket.md)
