@@ -5,7 +5,7 @@
 [![NuGet](http://img.shields.io/nuget/v/RxJS-Bridges-HTML.svg)](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
-RxJS-DOM <sup>4.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript 
+RxJS-DOM <sup>4.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript
 ==========================================================
 ## OVERVIEW
 
@@ -31,12 +31,12 @@ npm install rx-dom
 bower install rxjs-dom
 ```
 ### Installing with [Jam](http://jamjs.org/)
-```bash	
+```bash
 jam install rx-dom
 ```
 ### Installing with [NuGet](http://nuget.org)
 ```bash
-PM> Install-Package RxJS-Bridges-HTML	
+PM> Install-Package RxJS-Bridges-HTML
 ```
 ### Getting Started with the HTML DOM Bindings
 
@@ -47,14 +47,14 @@ We'll start out with a basic skeleton for our application with script references
 <script type="text/javascript" src="rx.lite.js"></script>
 <script type="text/javascript" src="rx.dom.js"><script>
 <script type="text/javascript">
-	
+
 </script>
 ...
 <input id="textInput" type="text"></input>
 <ul id="results"></ul>
 ...
 ```
-The goal here is to take the input from our textbox and throttle it in a way that it doesn't overload the service with requests.  To do that, we'll get the reference to the textInput using the document.getElementById moethod, then bind to the 'keyup' event using the `Rx.DOM.fromEvent` specialization shortcut for keyups called `Rx.DOM.keyup` which then takes the DOM element event handler and transforms it into an RxJS Observable. 
+The goal here is to take the input from our textbox and debounce it in a way that it doesn't overload the service with requests.  To do that, we'll get the reference to the textInput using the document.getElementById method, then bind to the 'keyup' event using the `Rx.DOM.fromEvent` specialization shortcut for keyups called `Rx.DOM.keyup` which then takes the DOM element event handler and transforms it into an RxJS Observable.
 ```js
 var textInput = document.getElementById('textInput');
 var throttledInput = Rx.DOM.keyup(textInput);
@@ -71,9 +71,9 @@ We're also not interested in query terms less than two letters, so we'll trim th
 		return text.length > 2;
 	})
 ```
-We also want to slow down the user input a little bit so that the external service won't be flooded with requests.  To do that, we'll use the `throttle` method with a timeout of 500 milliseconds, which will ignore your fast typing and only return a value after you have paused for that time span.  
+We also want to slow down the user input a little bit so that the external service won't be flooded with requests.  To do that, we'll use the `debounce` method with a timeout of 500 milliseconds, which will ignore your fast typing and only return a value after you have paused for that time span.  
 ```js
-	.throttle(500)
+	.debounce(500)
 ```
 Lastly, we only want distinct values in our input stream, so we can ignore requests that are not unique, for example if I copy and paste the same value twice, the request will be ignored using the `distinctUntilChanged` method.
 ```js
@@ -90,7 +90,7 @@ var throttledInput = Rx.DOM.keyup(textInput)
 	.filter( function (text) {
 		return text.length > 2;
 	})
-	.throttle(500)
+	.debounce(500)
 	.distinctUntilChanged();
 ```
 
@@ -137,7 +137,7 @@ suggestions.subscribe( function (data) {
   }
 }, function (e) {
 	clearSelector(resultList);
-    resultList.appendChild(createLineItem('Error: ' + e));
+  resultList.appendChild(createLineItem('Error: ' + e));
 });
 
 ```

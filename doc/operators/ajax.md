@@ -6,21 +6,22 @@ Creates a hot observable for an Ajax request with either a settings object with 
 #### Arguments
 - `url` *(String)*: A string of the URL to make the Ajax call.
 - `settings` *(Object)*: An object with the following properties
-    
+
     - `url` *(String)*: URL of the request
       - `method` *(String)*: Method of the request, such as GET, POST, PUT, PATCH, DELETE
       - `async` *(Boolean)*: Whether the request is async
       - `headers` *(Object)*: Optional headers
+      - `body` *(Object)*: Optional body
 
 #### Returns
 *(Observable)*: An observable sequence containing the `XMLHttpRequest`.
 
-#### Example 
+#### Example
 
-The following example uses a simple URL to retrieve a list of products. 
+The following example uses a simple URL to retrieve a list of products.
 ```js
 Rx.DOM.Request.ajax('/products')
-  .subscribe( 
+  .subscribe(
     function (xhr) {
 
       var products = JSON.parse(xhr.responseText);
@@ -56,4 +57,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.ajax.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.ajax.js)
+- [`/tests/tests.ajax.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.ajax.js)
