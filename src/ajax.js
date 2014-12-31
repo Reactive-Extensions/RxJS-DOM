@@ -1,6 +1,6 @@
 
-  /* @private 
-   * Gets the proper XMLHttpRequest for support for older IE 
+  /* @private
+   * Gets the proper XMLHttpRequest for support for older IE
    */
   function getXMLHttpRequest() {
     if (root.XMLHttpRequest) {
@@ -17,10 +17,10 @@
   /**
    * Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
    *
-   * @example 
+   * @example
    *   source = Rx.DOM.ajax('/products');
    *   source = Rx.DOM.ajax( url: 'products', method: 'GET' });
-   *     
+   *
    * @param {Object} settings Can be one of the following:
    *
    *  A string of the URL to make the Ajax call.
@@ -88,7 +88,7 @@
       } catch (e) {
         observer.onError(e);
       }
-  
+
       return function () {
         if (!isDone && xhr.readyState !== 4) { xhr.abort(); }
       };
@@ -105,28 +105,26 @@
   dom.post = function (url, body) {
     return ajaxRequest({ url: url, body: body, method: 'POST', async: true });
   };
-  
+
   /**
    * Creates an observable sequence from an Ajax GET Request with the body.
    *
    * @param {String} url The URL to GET
    * @returns {Observable} The observable sequence which contains the response from the Ajax GET.
-   */   
+   */
   var observableGet = dom.get = function (url) {
     return ajaxRequest({ url: url, method: 'GET', async: true });
   };
 
-  
-  if (typeof JSON !== 'undefined' && typeof JSON.parse === 'function') {
-    /**
-     * Creates an observable sequence from JSON from an Ajax request
-     *
-     * @param {String} url The URL to GET
-     * @returns {Observable} The observable sequence which contains the parsed JSON.
-     */       
-    dom.getJSON = function (url) {
-      return observableGet(url).map(function (xhr) {
-        return JSON.parse(xhr.responseText);
-      });
-    };            
-  }    
+  /**
+   * Creates an observable sequence from JSON from an Ajax request
+   *
+   * @param {String} url The URL to GET
+   * @returns {Observable} The observable sequence which contains the parsed JSON.
+   */
+  dom.getJSON = function (url) {
+    if (!root.JSON && typeof root.JSON.parse !== 'function') { throw new TypeError('JSON is not supported in your runtime.'); }
+    return observableGet(url).map(function (xhr) {
+      return JSON.parse(xhr.responseText);
+    });
+  };

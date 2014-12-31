@@ -246,8 +246,8 @@
     }).publish().refCount();
   };
 
-  /* @private 
-   * Gets the proper XMLHttpRequest for support for older IE 
+  /* @private
+   * Gets the proper XMLHttpRequest for support for older IE
    */
   function getXMLHttpRequest() {
     if (root.XMLHttpRequest) {
@@ -264,10 +264,10 @@
   /**
    * Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
    *
-   * @example 
+   * @example
    *   source = Rx.DOM.ajax('/products');
    *   source = Rx.DOM.ajax( url: 'products', method: 'GET' });
-   *     
+   *
    * @param {Object} settings Can be one of the following:
    *
    *  A string of the URL to make the Ajax call.
@@ -335,7 +335,7 @@
       } catch (e) {
         observer.onError(e);
       }
-  
+
       return function () {
         if (!isDone && xhr.readyState !== 4) { xhr.abort(); }
       };
@@ -352,31 +352,29 @@
   dom.post = function (url, body) {
     return ajaxRequest({ url: url, body: body, method: 'POST', async: true });
   };
-  
+
   /**
    * Creates an observable sequence from an Ajax GET Request with the body.
    *
    * @param {String} url The URL to GET
    * @returns {Observable} The observable sequence which contains the response from the Ajax GET.
-   */   
+   */
   var observableGet = dom.get = function (url) {
     return ajaxRequest({ url: url, method: 'GET', async: true });
   };
 
-  
-  if (typeof JSON !== 'undefined' && typeof JSON.parse === 'function') {
-    /**
-     * Creates an observable sequence from JSON from an Ajax request
-     *
-     * @param {String} url The URL to GET
-     * @returns {Observable} The observable sequence which contains the parsed JSON.
-     */       
-    dom.getJSON = function (url) {
-      return observableGet(url).map(function (xhr) {
-        return JSON.parse(xhr.responseText);
-      });
-    };            
-  }    
+  /**
+   * Creates an observable sequence from JSON from an Ajax request
+   *
+   * @param {String} url The URL to GET
+   * @returns {Observable} The observable sequence which contains the parsed JSON.
+   */
+  dom.getJSON = function (url) {
+    if (!root.JSON && typeof root.JSON.parse !== 'function') { throw new TypeError('JSON is not supported in your runtime.'); }
+    return observableGet(url).map(function (xhr) {
+      return JSON.parse(xhr.responseText);
+    });
+  };
 
   /** @private
    * Destroys the current element
@@ -461,114 +459,149 @@
       });
     };
   })();
-  if (!!root.WebSocket) {
-     /**
-     * Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
-     * 
-     * @example
-     *  var socket = Rx.DOM.fromWebSocket('http://localhost:8080', 'stock-protocol', function(e) { ... });
-     *  var socket = Rx.DOM.fromWebSocket('http://localhost:8080', 'stock-protocol', observer);
-     *
-     * @param {String} url The URL of the WebSocket.
-     * @param {String} protocol The protocol of the WebSocket.
-     * @param {Observer} [openObserver] An optional Observer to capture the open event.
-     * @returns {Subject} An observable sequence wrapping a WebSocket.
-     */
-    dom.fromWebSocket = function (url, protocol, openObserver) {
-      var socket = new root.WebSocket(url, protocol);
+   /**
+   * Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
+   *
+   * @example
+   *  var socket = Rx.DOM.fromWebSocket('http://localhost:8080', 'stock-protocol', observer);
+   *
+   * @param {String} url The URL of the WebSocket.
+   * @param {String} protocol The protocol of the WebSocket.
+   * @param {Observer} [openObserver] An optional Observer to capture the open event.
+   * @returns {Subject} An observable sequence wrapping a WebSocket.
+   */
+  dom.fromWebSocket = function (url, protocol, openObserver) {
+    if (!root.WebSocket) { throw new TypeError('WebSocket not implemented in your runtime.'); }
 
-      var observable = new AnonymousObservable(function (obs) {
-          if (observerOrOnNext) {
-            socket.onopen = function (openEvent) {
-              openObserver.onNext(openEvent);
-              openObserver.onCompleted();
-            };
-          }
+    var socket = new root.WebSocket(url, protocol);
 
-          socket.onmessage = function (data) { obs.onNext(data); };
-          socket.onerror = function (err) { obs.onError(err); };
-          socket.onclose = function () { obs.onCompleted(); };
+    var observable = new AnonymousObservable(function (obs) {
+      function openHandler(e) {
+        openObserver.onNext(e);
+        openObserver.onCompleted();
+        socket.removeEventListener('open', openHandler, false);
+      }
+      function messageHandler(data) { obs.onNext(data); }
+      function errHandler(err) { obs.onError(err); }
+      function closeHandler() { obs.onCompleted(); }
 
-          return function () {
-            socket.close();
-          };
-      });
+      openObserver && socket.addEventListener('open', openHandler, false);
+      socket.addEventListener('message', messageHandler, false);
+      socket.addEventListener('error', errHandler, false);
+      socket.addEventListener('close', closeHandler, false);
 
-      var observer = observerCreate(function (data) {
-        if (socket.readyState === WebSocket.OPEN) {
-          socket.send(data);
+      return function () {
+        socket.close();
+
+        socket.removeEventListener('message', messageHandler, false);
+        socket.removeEventListener('error', errHandler, false);
+        socket.removeEventListener('close', closeHandler, false);
+      };
+    });
+
+    var observer = observerCreate(function (data) {
+      socket.readyState === WebSocket.OPEN && socket.send(data);
+    });
+
+    return Subject.create(observer, observable);
+  };
+
+  /**
+   * Creates a Web Worker with a given URL as a Subject.
+   *
+   * @example
+   * var worker = Rx.DOM.fromWebWorker('worker.js');
+   *
+   * @param {String} url The URL of the Web Worker.
+   * @returns {Subject} A Subject wrapping the Web Worker.
+   */
+  dom.fromWebWorker = function (url) {
+    if (!root.Worker) { throw new TypeError('Worker not implemented in your runtime.'); }
+    var worker = new root.Worker(url);
+
+    var observable = new AnonymousObservable(function (obs) {
+
+      function messageHandler(data) { obs.onNext(data); }
+      function errHandler(err) { obs.onError(err); }
+
+      worker.addEventListener('message', messageHandler, false);
+      worker.addEventListener('error', errHandler, false);
+
+      return function () {
+        worker.close();
+        worker.removeEventListener('message', messageHandler, false);
+        worker.removeEventListener('error', errHandler, false);
+      };
+    });
+
+    var observer = observerCreate(function (data) {
+      worker.postMessage(data);
+    });
+
+    return Subject.create(observer, observable);
+  };
+
+  /**
+   * This method wraps an EventSource as an observable sequence.
+   * @param {String} url The url of the server-side script.
+   * @param {Observer} [openObserver] An optional observer for the 'open' event for the server side event.
+   * @returns {Observable} An observable sequence which represents the data from a server-side event.
+   */
+  dom.fromEventSource = function (url, openObserver) {
+    if (!root.EventSource) { throw new TypeError('EventSource not implemented in your runtime.'); }
+    return new AnonymousObservable(function (observer) {
+      var source = new root.EventSource(url);
+
+      function onOpen(e) {
+        openObserver.onNext(e);
+        openObserver.onCompleted();
+        source.removeEventListener('open', onOpen, false);
+      }
+
+      function onError(e) {
+        if (e.readyState === EventSource.CLOSED) {
+          observer.onCompleted();
+        } else {
+          observer.onError(e);
         }
-      });
+      }
 
-      return Subject.create(observer, observable);
-    };       
-  }
+      function onMessage(e) {
+        observer.onNext(e);
+      }
 
+      openObserver && source.addEventListener('open', onOpen, false);
+      source.addEventListener('error', onError, false);
+      source.addEventListener('message', onMessage, false);
 
-  if (!!root.Worker) {
-    /**
-     * Creates a Web Worker with a given URL as a Subject.
-     * 
-     * @example
-     * var worker = Rx.DOM.fromWebWorker('worker.js');
-     *
-     * @param {String} url The URL of the Web Worker.
-     * @returns {Subject} A Subject wrapping the Web Worker.
-     */
-    dom.fromWebWorker = function (url) {
-      var worker = new root.Worker(url);
+      return function () {
+        source.removeEventListener('error', onError, false);
+        source.removeEventListener('message', onMessage, false);
+        source.close();
+      };
+    });
+  };
 
-      var observable = new AnonymousObservable(function (obs) {
-        worker.onmessage = function (data) {
-          obs.onNext(data);
-        };
+  /**
+   * Creates an observable sequence from a Mutation Observer.
+   * MutationObserver provides developers a way to react to changes in a DOM.
+   * @example
+   *  Rx.DOM.fromMutationObserver(document.getElementById('foo'), { attributes: true, childList: true, characterData: true });
+   *
+   * @param {Object} target The Node on which to obserave DOM mutations.
+   * @param {Object} options A MutationObserverInit object, specifies which DOM mutations should be reported.
+   * @returns {Observable} An observable sequence which contains mutations on the given DOM target.
+   */
+  dom.fromMutationObserver = function (target, options) {
+    var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
+    if (!BrowserMutationObserver) { throw new TypeError('MutationObserver not implemented in your runtime.'); }
+    return observableCreate(function (observer) {
+      var mutationObserver = new BrowserMutationObserver(observer.onNext.bind(observer));
+      mutationObserver.observe(target, options);
 
-        worker.onerror = function (err) {
-          obs.onError(err);
-        };
-
-        return function () {
-          worker.close();
-        };
-      });
-
-      var observer = observerCreate(function (data) {
-        worker.postMessage(data);
-      });
-
-      return Subject.create(observer, observable);
-    };      
-  }
-
-    if (window.MutationObserver) {
-
-        /**
-         * Creates an observable sequence from a Mutation Observer.
-         * MutationObserver provides developers a way to react to changes in a DOM.
-         * @example
-         *  Rx.DOM.fromMutationObserver(document.getElementById('foo'), { attributes: true, childList: true, characterData: true });
-         *
-         * @param {Object} target The Node on which to obserave DOM mutations.
-         * @param {Object} options A MutationObserverInit object, specifies which DOM mutations should be reported.
-         * @returns {Observable} An observable sequence which contains mutations on the given DOM target.
-         */
-        dom.fromMutationObserver = function (target, options) {
-
-            return observableCreate(function (observer) {
-                var mutationObserver = new MutationObserver(function (mutations) {
-                    observer.onNext(mutations);
-                });
-
-                mutationObserver.observe(target, options);
-
-                return function () {
-                    mutationObserver.disconnect();
-                };
-            });
-
-        };
-
-    }
+      return mutationObserver.disconnect.bind(mutationObserver);
+    });
+  };
 
   // Get the right animation frame method
   var requestAnimFrame, cancelAnimFrame;
@@ -586,13 +619,13 @@
     cancelAnimFrame = root.msCancelAnimationFrame;
   } else if (root.oRequestAnimationFrame) {
     requestAnimFrame = root.oRequestAnimationFrame;
-    cancelAnimFrame = root.oCancelAnimationFrame;    
+    cancelAnimFrame = root.oCancelAnimationFrame;
   } else {
     requestAnimFrame = function(cb) { root.setTimeout(cb, 1000 / 60); };
     cancelAnimFrame = root.clearTimeout;
   }
 
-  /** 
+  /**
    * Gets a scheduler that schedules schedules work on the requestAnimationFrame for immediate actions.
    */
   Scheduler.requestAnimationFrame = (function () {
@@ -611,7 +644,7 @@
     function scheduleRelative(state, dueTime, action) {
       var scheduler = this,
         dt = Scheduler.normalize(dueTime);
-        
+
       if (dt === 0) { return scheduler.scheduleWithState(state, action); }
 
       var disposable = new SingleAssignmentDisposable(),
@@ -636,18 +669,20 @@
       return this.scheduleWithRelativeAndState(state, dueTime - this.now(), action);
     }
 
-    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);        
+    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);
 
   }());
-  
-// Check for mutation observer
-var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
-if (BrowserMutationObserver) {
+
+  var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
+  if (!!BrowserMutationObserver) {
+
 
   /**
    * Scheduler that uses a MutationObserver changes as the scheduling mechanism
    */
   Scheduler.mutationObserver = (function () {
+
+
 
     var queue = [], queueId = 0;
 
@@ -681,6 +716,7 @@ if (BrowserMutationObserver) {
     }
 
     function scheduleNow(state, action) {
+
       var scheduler = this,
         disposable = new SingleAssignmentDisposable();
 
@@ -694,6 +730,7 @@ if (BrowserMutationObserver) {
     }
 
     function scheduleRelative(state, dueTime, action) {
+
       var scheduler = this,
         dt = Scheduler.normalize(dueTime);
 
@@ -701,9 +738,9 @@ if (BrowserMutationObserver) {
         return scheduler.scheduleWithState(state, action);
       }
 
-      var disposable = new SingleAssignmentDisposable(),
-        id;
-      var scheduleFunc = function () {
+      var disposable = new SingleAssignmentDisposable(), id;
+
+      function scheduleFunc() {
         if (id) { clearMethod(id); }
         if (dt - scheduler.now() <= 0) {
           !disposable.isDisposed && (disposable.setDisposable(action(scheduler, state)));
@@ -723,63 +760,66 @@ if (BrowserMutationObserver) {
       return this.scheduleWithRelativeAndState(state, dueTime - this.now(), action);
     }
 
-    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);  
+    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);
   }());
 }
 
+  Rx.DOM.geolocation = {
+    /**
+    * Obtains the geographic position, in terms of latitude and longitude coordinates, of the device.
+    * @param {Object} [geolocationOptions] An object literal to specify one or more of the following attributes and desired values:
+    *   - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
+    *   - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
+    *              If timeout is Infinity, (the default value) the location request will not time out.
+    *              If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
+    *   - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
+    *                 If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
+    *                 If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
+    *                 If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
+    * @returns {Observable} An observable sequence with the geographical location of the device running the client.
+    */
+    getCurrentPosition: function (geolocationOptions) {
+      if (!root.navigator && !root.navigation.geolocation) { throw new TypeError('geolocation not available'); }
 
-  if ('navigator' in root && 'geolocation' in root.navigator) {
-    Rx.DOM.geolocation = {
+      return new AnonymousObservable(function (observer) {
+        root.navigator.geolocation.getCurrentPosition(
+          function (data) {
+            observer.onNext(data);
+            observer.onCompleted();
+          },
+          observer.onError.bind(observer),
+          geolocationOptions);
+      });
+    },
 
-      /**
-       * Obtains the geographic position, in terms of latitude and longitude coordinates, of the device.
-      * @param {Object} [geolocationOptions] An object literal to specify one or more of the following attributes and desired values:
-      *   - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
-      *   - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
-      *              If timeout is Infinity, (the default value) the location request will not time out.
-      *              If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
-      *   - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
-      *                 If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
-      *                 If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
-      *                 If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
-      * @returns {Observable} An observable sequence with the geographical location of the device running the client.
-      */
-      getCurrentPosition: function (geolocationOptions) {
-        return new AnonymousObservable(function (observer) {
-          root.navigator.geolocation.getCurrentPosition(
-            observer.onNext.bind(observer), 
-            observer.onError.bind(observer), 
-            geolocationOptions);
-        });
-      },
+    /**
+    * Begins listening for updates to the current geographical location of the device running the client.
+    * @param {Object} [geolocationOptions] An object literal to specify one or more of the following attributes and desired values:
+    *   - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
+    *   - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
+    *              If timeout is Infinity, (the default value) the location request will not time out.
+    *              If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
+    *   - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
+    *                 If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
+    *                 If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
+    *                 If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
+    * @returns {Observable} An observable sequence with the current geographical location of the device running the client.
+    */
+    watchPosition: function (geolocationOptions) {
+      if (!root.navigator && !root.navigation.geolocation) { throw new TypeError('geolocation not available'); }
 
-      /**
-      * Begins listening for updates to the current geographical location of the device running the client.
-      * @param {Object} [geolocationOptions] An object literal to specify one or more of the following attributes and desired values:
-      *   - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
-      *   - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
-      *              If timeout is Infinity, (the default value) the location request will not time out.
-      *              If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
-      *   - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
-      *                 If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
-      *                 If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
-      *                 If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
-      * @returns {Observable} An observable sequence with the current geographical location of the device running the client.
-      */ 
-      watchPosition: function (geolocationOptions) {
-        return new AnonymousObservable(function (observer) {
-          var watchId = root.navigator.geolocation.watchPosition(
-            observer.onNext.bind(observer), 
-            observer.onError.bind(observer), 
-            geolocationOptions);
+      return new AnonymousObservable(function (observer) {
+        var watchId = root.navigator.geolocation.watchPosition(
+          observer.onNext.bind(observer),
+          observer.onError.bind(observer),
+          geolocationOptions);
 
-          return function () {
-            root.navigator.geolocation.clearWatch(watchId);
-          };
-        }).publish().refCount();
-      }
+        return function () {
+          root.navigator.geolocation.clearWatch(watchId);
+        };
+      }).publish().refCount();
     }
-  }
+  };
 
   return Rx;
 }));

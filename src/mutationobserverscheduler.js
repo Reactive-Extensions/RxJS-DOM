@@ -1,11 +1,13 @@
-// Check for mutation observer
-var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
-if (BrowserMutationObserver) {
+  var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
+  if (!!BrowserMutationObserver) {
+
 
   /**
    * Scheduler that uses a MutationObserver changes as the scheduling mechanism
    */
   Scheduler.mutationObserver = (function () {
+
+
 
     var queue = [], queueId = 0;
 
@@ -39,6 +41,7 @@ if (BrowserMutationObserver) {
     }
 
     function scheduleNow(state, action) {
+
       var scheduler = this,
         disposable = new SingleAssignmentDisposable();
 
@@ -52,6 +55,7 @@ if (BrowserMutationObserver) {
     }
 
     function scheduleRelative(state, dueTime, action) {
+
       var scheduler = this,
         dt = Scheduler.normalize(dueTime);
 
@@ -59,9 +63,9 @@ if (BrowserMutationObserver) {
         return scheduler.scheduleWithState(state, action);
       }
 
-      var disposable = new SingleAssignmentDisposable(),
-        id;
-      var scheduleFunc = function () {
+      var disposable = new SingleAssignmentDisposable(), id;
+
+      function scheduleFunc() {
         if (id) { clearMethod(id); }
         if (dt - scheduler.now() <= 0) {
           !disposable.isDisposed && (disposable.setDisposable(action(scheduler, state)));
@@ -81,7 +85,6 @@ if (BrowserMutationObserver) {
       return this.scheduleWithRelativeAndState(state, dueTime - this.now(), action);
     }
 
-    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);  
+    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);
   }());
 }
-

@@ -2,7 +2,7 @@
   "name": "rx-dom",
   "title": "The Reactive Extensions Bindings for the DOM.",
   "description": "Library for using DOM elements as well as Ajax requests",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "homepage": "https://github.com/Reactive-Extensions/RxJS-DOM",
   "author": {
     "name": "MS Open Tech",
@@ -24,14 +24,19 @@
   "devDependencies": {
     "grunt-cli": "*",
     "grunt": "*",
+    "grunt-contrib-jshint": "*",
+    "grunt-contrib-connect": "*",
     "grunt-contrib-uglify": "*",
     "grunt-contrib-concat": "*",
     "grunt-contrib-qunit": "*",
+    "grunt-contrib-watch": "*",
+    "grunt-saucelabs": "*",
+    "grunt-jscs": "*",
     "load-grunt-tasks": "*"
   },
   "jam": {
     "main": "dist/rx.dom.js"
-  },  
+  },
   "keywords": [
     "Reactive",
     "FRP",
@@ -49,5 +54,5 @@
   "main": "rx.dom.node.js",
   "scripts": {
     "test": "grunt"
-  }  
+  }
 }

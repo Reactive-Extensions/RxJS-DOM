@@ -1,4 +1,3 @@
-
   // Get the right animation frame method
   var requestAnimFrame, cancelAnimFrame;
   if (root.requestAnimationFrame) {
@@ -15,13 +14,13 @@
     cancelAnimFrame = root.msCancelAnimationFrame;
   } else if (root.oRequestAnimationFrame) {
     requestAnimFrame = root.oRequestAnimationFrame;
-    cancelAnimFrame = root.oCancelAnimationFrame;    
+    cancelAnimFrame = root.oCancelAnimationFrame;
   } else {
     requestAnimFrame = function(cb) { root.setTimeout(cb, 1000 / 60); };
     cancelAnimFrame = root.clearTimeout;
   }
 
-  /** 
+  /**
    * Gets a scheduler that schedules schedules work on the requestAnimationFrame for immediate actions.
    */
   Scheduler.requestAnimationFrame = (function () {
@@ -40,7 +39,7 @@
     function scheduleRelative(state, dueTime, action) {
       var scheduler = this,
         dt = Scheduler.normalize(dueTime);
-        
+
       if (dt === 0) { return scheduler.scheduleWithState(state, action); }
 
       var disposable = new SingleAssignmentDisposable(),
@@ -65,7 +64,6 @@
       return this.scheduleWithRelativeAndState(state, dueTime - this.now(), action);
     }
 
-    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);        
+    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);
 
   }());
-  

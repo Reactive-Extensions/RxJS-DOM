@@ -27,7 +27,7 @@ module.exports = function (grunt) {
             'src/basicheader.js',
             'src/fromevent.js',
             'src/events.js',
-            'src/ready.js',            
+            'src/ready.js',
             'src/ajax.js',
             'src/jsonp.js',
             'src/websocket.js',
@@ -61,17 +61,27 @@ module.exports = function (grunt) {
             'src/outro.js'
           ],
           dest: 'dist/rx.dom.compat.js'
-        },        
+        },
       },
       uglify: {
+        options: {
+          banner:
+          '/* Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.*/'
+        },
         basic: {
-          src: ['<banner>', 'dist/rx.dom.js'],
-          dest: 'dist/rx.dom.min.js'
+          options: {
+            sourceMap: true,
+            sourceMapName: 'dist/rx.dom.map'
+          },
+          files: {'dist/rx.dom.min.js': ['dist/rx.dom.js'] }
         },
         compat: {
-          src: ['<banner>', 'dist/rx.dom.compat.js'],
-          dest: 'dist/rx.dom.compat.min.js'
-        },              
+          options: {
+            sourceMap: true,
+            sourceMapName: 'dist/rx.dom.compat.map'
+          },
+          files: {'dist/rx.dom.compat.min.js': ['dist/rx.dom.compat.js'] }
+        }
       },
       qunit: {
         all: ['tests/*.html']
@@ -108,7 +118,7 @@ module.exports = function (grunt) {
       }
 
       done();
-    });     
+    });
   });
 
   // Default task(s).
