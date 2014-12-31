@@ -1,7 +1,7 @@
   if (!!root.Worker) {
     /**
      * Creates a Web Worker with a given URL as a Subject.
-     * 
+     *
      * @example
      * var worker = Rx.DOM.fromWebWorker('worker.js');
      *
@@ -12,16 +12,17 @@
       var worker = new root.Worker(url);
 
       var observable = new AnonymousObservable(function (obs) {
-        worker.onmessage = function (data) {
-          obs.onNext(data);
-        };
 
-        worker.onerror = function (err) {
-          obs.onError(err);
-        };
+        function messageHandler(data) { obs.onNext(data); }
+        function errHandler(err) { obs.onError(err); }
+
+        worker.addEventListener('message', messageHandler, false);
+        worker.addEventListener('error', errHandler, false);
 
         return function () {
           worker.close();
+          worker.removeEventListener('message', messageHandler, false);
+          worker.removeEventListener('error', errHandler, false);
         };
       });
 
@@ -30,5 +31,5 @@
       });
 
       return Subject.create(observer, observable);
-    };      
+    };
   }

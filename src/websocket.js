@@ -1,9 +1,8 @@
   if (!!root.WebSocket) {
      /**
      * Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
-     * 
+     *
      * @example
-     *  var socket = Rx.DOM.fromWebSocket('http://localhost:8080', 'stock-protocol', function(e) { ... });
      *  var socket = Rx.DOM.fromWebSocket('http://localhost:8080', 'stock-protocol', observer);
      *
      * @param {String} url The URL of the WebSocket.
@@ -15,29 +14,34 @@
       var socket = new root.WebSocket(url, protocol);
 
       var observable = new AnonymousObservable(function (obs) {
-          if (observerOrOnNext) {
-            socket.onopen = function (openEvent) {
-              openObserver.onNext(openEvent);
-              openObserver.onCompleted();
-            };
-          }
+        function openHandler(e) {
+          openObserver.onNext(e);
+          openObserver.onCompleted();
+        }
 
-          socket.onmessage = function (data) { obs.onNext(data); };
-          socket.onerror = function (err) { obs.onError(err); };
-          socket.onclose = function () { obs.onCompleted(); };
+        function messageHandler(data) { obs.onNext(data); }
+        function errHandler(err) { obs.onError(err); }
+        function closeHandler() { obs.onCompleted(); }
 
-          return function () {
-            socket.close();
-          };
+        openObserver && socket.addEventListener('open', openHandler, false);
+        socket.addEventListener('message', messageHandler, false);
+        socket.addEventListener('error', errHandler, false);
+        socket.addEventListener('close', closeHandler, false);
+
+        return function () {
+          socket.close();
+
+          openObserver && socket.addEventListener('open', openHandler, false);
+          socket.removeEventListener('message', messageHandler, false);
+          socket.removeEventListener('error', errHandler, false);
+          socket.removeEventListener('close', closeHandler, false);
+        };
       });
 
       var observer = observerCreate(function (data) {
-        if (socket.readyState === WebSocket.OPEN) {
-          socket.send(data);
-        }
+        socket.readyState === WebSocket.OPEN) && socket.send(data);
       });
 
       return Subject.create(observer, observable);
-    };       
+    };
   }
-
