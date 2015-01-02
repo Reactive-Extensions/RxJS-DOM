@@ -374,7 +374,7 @@
    * Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
    *
    * @example
-   *  var socket = Rx.DOM.fromWebSocket('http://localhost:8080', 'stock-protocol', observer);
+   *  var socket = Rx.DOM.fromWebSocket('http://localhost:8080', 'stock-protocol', openObserver, closingObserver);
    *
    * @param {String} url The URL of the WebSocket.
    * @param {String} protocol The protocol of the WebSocket.
@@ -408,10 +408,10 @@
         openObserver.onNext(e);
         openObserver.onCompleted();
         socket.removeEventListener('open', openHandler, false);
-      }
-      var messageHandler = function(e) { obs.onNext(e); }
-      var errHandler = function(err) { obs.onError(err); }
-      var closeHandler = function() { obs.onCompleted(); }
+      };
+      var messageHandler = function(e) { obs.onNext(e); };
+      var errHandler = function(err) { obs.onError(err); };
+      var closeHandler = function() { obs.onCompleted(); };
 
       openObserver && socket.addEventListener('open', openHandler, false);
       socket.addEventListener('message', messageHandler, false);

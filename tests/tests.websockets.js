@@ -147,6 +147,34 @@ test('onError("reason") should close the underlying socket with code generic cod
 	deepEqual(MockSocket.closeCalledWith, [1008, 'because I am testing this']);
 });
 
+test('onError({ reason: "reason", code: 3001 }) should close the underlying socket with code generic code 3001 and "reason"', function(){
+	window.WebSocket = MockSocket;
+
+	var socket = Rx.DOM.fromWebSocket('endpoint');
+
+	var disposable = socket.subscribe(function(){});
+
+	equal(typeof MockSocket.closeCalledWith, 'undefined');
+	socket.onError({
+		reason: 'because I am testing this',
+		code: 3001
+	});
+	deepEqual(MockSocket.closeCalledWith, [3001, 'because I am testing this']);
+});
+
+test('onError(JSError) should close the underlying socket with code generic code 1008 and the message supplied with the Error', function(){
+	window.WebSocket = MockSocket;
+
+	var socket = Rx.DOM.fromWebSocket('endpoint');
+
+	var disposable = socket.subscribe(function(){});
+
+	equal(typeof MockSocket.closeCalledWith, 'undefined');
+	socket.onError(new Error('because I am testing this'));
+	deepEqual(MockSocket.closeCalledWith, [1008, 'because I am testing this']);
+});
+
+
 function MockSocket() {
 	MockSocket.calledWith = [].slice.call(arguments);
 	MockSocket.closeCalledWith = undefined;
