@@ -32,14 +32,14 @@
     var observable = new AnonymousObservable(function (obs) {
       socket = protocol ? new root.WebSocket(url, protocol) : new root.WebSocket(url);
 
-      function openHandler(e) {
+      var openHandler = function(e) {
         openObserver.onNext(e);
         openObserver.onCompleted();
         socket.removeEventListener('open', openHandler, false);
       }
-      function messageHandler(e) { obs.onNext(e); }
-      function errHandler(err) { obs.onError(err); }
-      function closeHandler() { obs.onCompleted(); }
+      var messageHandler = function(e) { obs.onNext(e); }
+      var errHandler = function(err) { obs.onError(err); }
+      var closeHandler = function() { obs.onCompleted(); }
 
       openObserver && socket.addEventListener('open', openHandler, false);
       socket.addEventListener('message', messageHandler, false);
