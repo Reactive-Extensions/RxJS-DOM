@@ -476,6 +476,20 @@
 
     var socket;
 
+    var socketClose = function(code, reason) {
+      if(socket) {
+        if(closingObserver) {
+          closingObserver.onNext();
+          closingObserver.onCompleted();
+        }
+        if(!code) {
+          socket.close();
+        } else {
+          socket.close(code, reason);
+        }
+      }
+    };
+
     var observable = new AnonymousObservable(function (obs) {
       socket = protocol ? new root.WebSocket(url, protocol) : new root.WebSocket(url);
 
@@ -494,12 +508,7 @@
       socket.addEventListener('close', closeHandler, false);
 
       return function () {
-        if(closingObserver) {
-          closingObserver.onNext();
-          closingObserver.onCompleted();
-        }
-
-        socket.close();
+        socketClose();
 
         socket.removeEventListener('message', messageHandler, false);
         socket.removeEventListener('error', errHandler, false);
@@ -509,7 +518,20 @@
 
     var observer = observerCreate(function (data) {
       socket.readyState === WebSocket.OPEN && socket.send(data);
-    });
+    },
+    function(e) {
+      var reason = 'unknown reason';
+      var code = 1008; //generic error code
+      if(typeof e === 'string') {
+        reason = e;
+      }
+      else if(typeof e === 'object') {
+        reason = e.reason || e.message;
+        code = e.code || code;
+      }
+      socketClose(code, reason);
+    },
+    socketClose);
 
     return Subject.create(observer, observable);
   };

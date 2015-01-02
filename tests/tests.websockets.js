@@ -120,14 +120,37 @@ test('should have a hook for just before the underlying socket is closed', funct
 
 	equal(calledNext, true, 'closingObserver should have been called');
 	equal(calledCompleted, true, 'closingObserver should have been called');
-	equal(!!MockSocket.closeCalledWith, true);
+	deepEqual(MockSocket.closeCalledWith, []);
+});
+
+test('onCompleted() should close the underlying socket', function(){
+	window.WebSocket = MockSocket;
+
+	var socket = Rx.DOM.fromWebSocket('endpoint');
+
+	var disposable = socket.subscribe(function(){});
+
+	equal(typeof MockSocket.closeCalledWith, 'undefined');
+	socket.onCompleted();
+	deepEqual(MockSocket.closeCalledWith, []);
+});
+
+test('onError("reason") should close the underlying socket with code generic code 1008 and "reason"', function(){
+	window.WebSocket = MockSocket;
+
+	var socket = Rx.DOM.fromWebSocket('endpoint');
+
+	var disposable = socket.subscribe(function(){});
+
+	equal(typeof MockSocket.closeCalledWith, 'undefined');
+	socket.onError('because I am testing this');
+	deepEqual(MockSocket.closeCalledWith, [1008, 'because I am testing this']);
 });
 
 function MockSocket() {
 	MockSocket.calledWith = [].slice.call(arguments);
 	MockSocket.closeCalledWith = undefined;
 }
-
 
 MockSocket.prototype = {
 	close: function(){
