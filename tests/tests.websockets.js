@@ -11,19 +11,7 @@ module('Websocket', {
 	}
 });
 
-// test('Socket can send data', function () {
-//   var dummySocket = { 
-//     send : sinon.spy()
-//   };
-
-//   sinon.stub(window, 'WebSocket').returns(dummySocket);
-
-//   // TODO: Get real websocket data
-// });
-
 test('Socket does not connect until subscribed to', function(){
-	var calledWith;
-
 	window.WebSocket = MockSocket;
 
 	var socket = Rx.DOM.fromWebSocket('endpoint', 'protocol');
@@ -38,8 +26,6 @@ test('Socket does not connect until subscribed to', function(){
 });
 
 test('Socket calls WebSocket constructor appropriately for one argument', function(){
-	var calledWith;
-
 	window.WebSocket = MockSocket;
 
 	var socket = Rx.DOM.fromWebSocket('endpoint');
@@ -53,8 +39,6 @@ test('Socket calls WebSocket constructor appropriately for one argument', functi
 
 
 test('Socket calls WebSocket constructor appropriately for two arguments', function(){
-	var calledWith;
-
 	window.WebSocket = MockSocket;
 
 	var socket = Rx.DOM.fromWebSocket('endpoint', 'protocol');
@@ -68,8 +52,6 @@ test('Socket calls WebSocket constructor appropriately for two arguments', funct
 
 
 test('Socket calls WebSocket constructor appropriately for three arguments where protocol is null', function(){
-	var calledWith;
-
 	window.WebSocket = MockSocket;
 
 	var obs = Rx.Observer.create(function() {});
@@ -85,8 +67,6 @@ test('Socket calls WebSocket constructor appropriately for three arguments where
 
 
 test('Socket calls WebSocket constructor appropriately for three arguments where protocol is undefined', function(){
-	var calledWith;
-
 	window.WebSocket = MockSocket;
 
 	var obs = Rx.Observer.create(function() {});
@@ -102,8 +82,6 @@ test('Socket calls WebSocket constructor appropriately for three arguments where
 
 
 test('Socket calls WebSocket constructor appropriately for three arguments where protocol is not undefined or null', function(){
-	var calledWith;
-
 	window.WebSocket = MockSocket;
 
 	var obs = Rx.Observer.create(function() {});
@@ -120,6 +98,7 @@ test('Socket calls WebSocket constructor appropriately for three arguments where
 function MockSocket() {
 	MockSocket.calledWith = [].slice.call(arguments);
 }
+
 
 MockSocket.prototype = {
 	close: function(){},
