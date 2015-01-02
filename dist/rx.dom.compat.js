@@ -473,9 +473,11 @@
   dom.fromWebSocket = function (url, protocol, openObserver) {
     if (!root.WebSocket) { throw new TypeError('WebSocket not implemented in your runtime.'); }
 
-    var socket = new root.WebSocket(url, protocol);
+    var socket;
 
     var observable = new AnonymousObservable(function (obs) {
+      socket = protocol ? new root.WebSocket(url, protocol) : new root.WebSocket(url);
+
       function openHandler(e) {
         openObserver.onNext(e);
         openObserver.onCompleted();
