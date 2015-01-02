@@ -7,9 +7,10 @@
    * @param {String} url The URL of the WebSocket.
    * @param {String} protocol The protocol of the WebSocket.
    * @param {Observer} [openObserver] An optional Observer to capture the open event.
+   * @param {Observer} [closingObserver] An optional Observer to capture the moment before the underlying socket is closed.
    * @returns {Subject} An observable sequence wrapping a WebSocket.
    */
-  dom.fromWebSocket = function (url, protocol, openObserver) {
+  dom.fromWebSocket = function (url, protocol, openObserver, closingObserver) {
     if (!root.WebSocket) { throw new TypeError('WebSocket not implemented in your runtime.'); }
 
     var socket;
@@ -22,7 +23,7 @@
         openObserver.onCompleted();
         socket.removeEventListener('open', openHandler, false);
       }
-      function messageHandler(data) { obs.onNext(data); }
+      function messageHandler(e) { obs.onNext(e); }
       function errHandler(err) { obs.onError(err); }
       function closeHandler() { obs.onCompleted(); }
 
@@ -32,6 +33,11 @@
       socket.addEventListener('close', closeHandler, false);
 
       return function () {
+        if(closingObserver) {
+          closingObserver.onNext();
+          closingObserver.onCompleted();
+        }
+
         socket.close();
 
         socket.removeEventListener('message', messageHandler, false);
