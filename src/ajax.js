@@ -4,10 +4,20 @@
    */
   function getXMLHttpRequest() {
     if (root.XMLHttpRequest) {
-      return new root.XMLHttpRequest;
+      return new root.XMLHttpRequest();
     } else {
+      var progId;
       try {
-        return new root.ActiveXObject('Microsoft.XMLHTTP');
+        var progIds = ['Msxml2.XMLHTTP', 'Microsoft.XMLHTTP', 'Msxml2.XMLHTTP.4.0'];
+        for(var i = 0; i < 3; i++) {
+          try {
+            progId = progIds[i];
+            if (new root.ActiveXObject(progId)) {
+              break;
+            }
+          } catch(e) { }
+        }
+        return new root.ActiveXObject(progId);
       } catch (e) {
         throw new Error('XMLHttpRequest is not supported by your browser');
       }
@@ -26,6 +36,7 @@
    *  A string of the URL to make the Ajax call.
    *  An object with the following properties
    *   - url: URL of the request
+   *   - body: The body of the request
    *   - method: Method of the request, such as GET, POST, PUT, PATCH, DELETE
    *   - async: Whether the request is async
    *   - headers: Optional headers
