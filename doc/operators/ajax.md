@@ -9,6 +9,7 @@ Creates a hot observable for an Ajax request with either a settings object with 
 
     - `url` *(String)*: URL of the request
       - `method` *(String)*: Method of the request, such as GET, POST, PUT, PATCH, DELETE
+      - `crossDomain` *(Boolean)*: true if to use CORS, else false
       - `async` *(Boolean)*: Whether the request is async
       - `headers` *(Object)*: Optional headers
       - `body` *(Object)*: Optional body

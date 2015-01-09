@@ -1,7 +1,5 @@
 
-  /* @private
-   * Gets the proper XMLHttpRequest for support for older IE
-   */
+  // Gets the proper XMLHttpRequest for support for older IE
   function getXMLHttpRequest() {
     if (root.XMLHttpRequest) {
       return new root.XMLHttpRequest();
@@ -24,8 +22,19 @@
     }
   }
 
+  // Get CORS support even for older IE
+  function getCORSRequest() {
+    if ('withCredentials' in root.XMLHttpRequest.prototype) {
+      return new root.XMLHttpRequest();
+    } else if (!!root.XDomainRequest) {
+      return new XDomainRequest();
+    } else {
+      throw new Error('CORS is not supported by your browser');
+    }
+  }
+
   /**
-   * Creates a cold observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
+   * Creates an observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
    *
    * @example
    *   source = Rx.DOM.ajax('/products');
@@ -40,23 +49,22 @@
    *   - method: Method of the request, such as GET, POST, PUT, PATCH, DELETE
    *   - async: Whether the request is async
    *   - headers: Optional headers
+   *   - crossDomain: true if a cross domain request, else false
    *
    * @returns {Observable} An observable sequence containing the XMLHttpRequest.
   */
   var ajaxRequest = dom.ajax = function (settings) {
+    typeof settings === 'string' && (settings = { method: 'GET', url: settings, async: true });
+    settings.method || (settings.method = 'GET');
+    settings.crossDomain === undefined && (settings.crossDomain = false);
+    settings.async === undefined && (settings.async = true);
+
     return new AnonymousObservable(function (observer) {
       var isDone = false;
-      if (typeof settings === 'string') {
-        settings = { method: 'GET', url: settings, async: true };
-      }
-      settings.method || (settings.method = 'GET');
-      if (settings.async === undefined) {
-        settings.async = true;
-      }
 
       var xhr;
       try {
-        xhr = getXMLHttpRequest();
+        xhr = settings.crossDomain ? getCORSRequest() : getXMLHttpRequest();
       } catch (err) {
         observer.onError(err);
       }
@@ -78,6 +86,14 @@
         }
 
         xhr.onreadystatechange = xhr.onload = function () {
+          // Check if CORS
+          if (settings.crossDomain) {
+            observer.onNext(xhr);
+            observer.onCompleted();
+            isDone = true;
+            return;
+          }
+
           if (xhr.readyState === 4) {
             var status = xhr.status;
             if ((status >= 200 && status <= 300) || status === 0 || status === '') {
