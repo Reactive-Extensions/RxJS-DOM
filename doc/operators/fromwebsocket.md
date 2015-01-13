@@ -6,40 +6,44 @@ Creates a WebSocket Subject with a given URL, protocol and an optional observer 
 #### Arguments
 1. `url` *(String)*: The URL of the WebSocket.
 2. `protocol` *(String)*: The protocol of the WebSocket.
-3. `[observerOrOnNext]` *(`Rx.Observer` | `Function`)*: An optional Observer or onNext function to capture the open event.
+3. `openObserver` *(`Rx.Observer`)*: An optional Observer to capture the open event.
+4. `closingObserver` *(`Rx.Observer`)*: An optional Observer capture the the moment before the underlying socket is closed.
 
 #### Returns
 *(`Subject`)*: A Subject which wraps a WebSocket.
 
 #### Example
 ```js
-// Using a function for the open
-var socket = Rx.DOM.fromWebSocket(
-  'http://localhost:8080', 
-  'protocol', 
-  function (e) {
-    console.log('Opening');
-  })
-
-socket.subscribe(function (next) {
-  console.log('Received data: ' + next);
+// an observer for when the socket is open
+var open = Observer.create(function(e) {
+  console.info('socket open');
 });
 
-socket.onNext('data');
-
-// Using an observer for the open
-var observer = Rx.Observer.create(function (e) {
-  console.log('Opening');
+// an observer for when the socket is about to close
+var closing = Observer.create(function() {
+  console.log('socket is about to close');
 });
 
-var socket = Rx.DOM.fromWebSocket(
-  'http://localhost:8080', 'protocol', observer)
+// create a web socket subject
+socket = Rx.DOM.fromWebSocket('ws://echo.websockets.org', null, open, closingObserver);
 
-socket.subscribe(function (next) {
-  console.log('Received data: ' + next);
+// send a message on the socket
+// this will queue until the socket is open.
+socket.onNext('test');
+
+// subscribing creates the underlying socket and will emit a stream of incoming
+// message events
+socket.subscribe(function(e) {
+  console.log('message: ', e.data); 
+},
+function(e) {
+  // errors and "unclean" closes land here
+  console.error('error: ', e);
+},
+function() {
+  // the socket has been closed
+  console.info('socket closed');
 });
-
-socket.onNext('data');
 ```
 
 ### Location
