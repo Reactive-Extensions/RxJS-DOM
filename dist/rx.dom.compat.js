@@ -333,6 +333,14 @@
         }
 
         xhr.onreadystatechange = xhr.onload = function () {
+          // Check if CORS
+          if (settings.crossDomain) {
+            observer.onNext(xhr);
+            observer.onCompleted();
+            isDone = true;
+            return;
+          }
+
           if (xhr.readyState === 4) {
             var status = xhr.status;
             if ((status >= 200 && status <= 300) || status === 0 || status === '') {
@@ -343,12 +351,6 @@
             }
 
             isDone = true;
-          }
-
-          // Check if CORS
-          if (settings.crossDomain) {
-            observer.onNext(xhr);
-            observer.onCompleted();
           }
         };
 
@@ -524,8 +526,13 @@
         socket.removeEventListener('open', openHandler, false);
       };
       var messageHandler = function(e) { obs.onNext(e); };
-      var errHandler = function(err) { obs.onError(err); };
-      var closeHandler = function() { obs.onCompleted(); };
+      var errHandler = function(e) { obs.onError(e); };
+      var closeHandler = function(e) { 
+        if(e.code !== 1000 || !e.wasClean) {
+          obs.onError(e);
+        }
+        obs.onCompleted(); 
+      };
 
       openObserver && socket.addEventListener('open', openHandler, false);
       socket.addEventListener('message', messageHandler, false);
@@ -545,18 +552,15 @@
       socket.readyState === WebSocket.OPEN && socket.send(data);
     },
     function(e) {
-      var reason = 'unknown reason';
-      var code = 1008; //generic error code
-      if(typeof e === 'string') {
-        reason = e;
+      if(!e.code) {
+        throw new Error('no code specified. be sure to pass { code: ###, reason: "" } to onError()');
       }
-      else if(typeof e === 'object') {
-        reason = e.reason || e.message;
-        code = e.code || code;
-      }
-      socketClose(code, reason);
+
+      socketClose(e.code, e.reason || '');
     },
-    socketClose);
+    function(){
+      socketClose(1000, '');
+    });
 
     return Subject.create(observer, observable);
   };
