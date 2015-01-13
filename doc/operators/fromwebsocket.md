@@ -46,6 +46,63 @@ function() {
 });
 ```
 
+### closing an already open web socket neatly
+```js
+// create a web socket subject
+socket = Rx.DOM.fromWebSocket('ws://echo.websockets.org', null, open, closingObserver);
+
+// this is an echo service, so it'll echo this back
+socket.onNext('close me');
+
+// subscribing creates the underlying socket and will emit a stream of incoming
+// message events
+socket.subscribe(function(e) {
+  // when we see our echoed response, let's kill the socket with a
+  // custom error
+  if(e.data === 'close me') {
+    socket.onCompleted(); // closes with code 1000 and reason ""
+  } 
+},
+function(e) {
+  // errors and "unclean" closes land here
+  console.error('error: ', e);
+},
+function() {
+  // the socket has been closed
+  console.info('socket closed');
+});
+
+```
+
+### closing an already open web socket with a custom error
+```js
+// create a web socket subject
+socket = Rx.DOM.fromWebSocket('ws://echo.websockets.org', null, open, closingObserver);
+
+// this is an echo service, so it'll echo this back
+socket.onNext('close me');
+
+// subscribing creates the underlying socket and will emit a stream of incoming
+// message events
+socket.subscribe(function(e) {
+  // when we see our echoed response, let's kill the socket with a
+  // custom error
+  if(e.data === 'close me') {
+    // close with a specified status code and reason
+    socket.onError({ code: 3001, reason: 'you told me to close' });
+  } 
+},
+function(e) {
+  // errors and "unclean" closes land here
+  console.error('error: ', e);
+},
+function() {
+  // the socket has been closed
+  console.info('socket closed');
+});
+
+```
+
 ### Location
 
 File:
