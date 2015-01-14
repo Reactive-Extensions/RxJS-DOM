@@ -5,7 +5,7 @@
     disposableCreate = Rx.Disposable.create,
     CompositeDisposable = Rx.CompositeDisposable,
     SingleAssignmentDisposable = Rx.SingleAssignmentDisposable,
-    AsynsSubject = Rx.AsynsSubject,
+    AsyncSubject = Rx.AsyncSubject,
     Subject = Rx.Subject,
     Scheduler = Rx.Scheduler,
     defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }()),
