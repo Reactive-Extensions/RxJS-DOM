@@ -333,6 +333,14 @@
         }
 
         xhr.onreadystatechange = xhr.onload = function () {
+          // Check if CORS
+          if (settings.crossDomain) {
+            observer.onNext(xhr);
+            observer.onCompleted();
+            isDone = true;
+            return;
+          }
+
           if (xhr.readyState === 4) {
             var status = xhr.status;
             if ((status >= 200 && status <= 300) || status === 0 || status === '') {
@@ -343,12 +351,6 @@
             }
 
             isDone = true;
-          }
-
-          // Check if CORS
-          if (settings.crossDomain) {
-            observer.onNext(xhr);
-            observer.onCompleted();
           }
         };
 
