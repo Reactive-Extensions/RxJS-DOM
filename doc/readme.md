@@ -77,7 +77,7 @@ Web Workers
 
 Mutation Observers
 
-- [`Rx.DOM.fromMutationObserver`](operators/frommutationobserver)
+- [`Rx.DOM.fromMutationObserver`](operators/frommutationobserver.md)
 
 Geolocation
 
