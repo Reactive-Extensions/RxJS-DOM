@@ -110,7 +110,12 @@
         xhr.onerror = function () {
           observer.onError(xhr);
         };
-
+        // body is expected as an object
+        if ( settings.body && typeof settings.body === 'Object') {
+          // Add proper header so server can parse it
+          xhr.setRequestHeader("Content-Type","application/json");
+          settings.body = JSON.stringify(settings.body);
+        }
         xhr.send(settings.body || null);
       } catch (e) {
         observer.onError(e);
