@@ -37,6 +37,7 @@ module.exports = function (grunt) {
             'src/requestanimationframescheduler.js',
             'src/mutationobserverscheduler.js',
             'src/geolocation.js',
+            'src/fromreader.js',
             'src/outro.js'
           ],
           dest: 'dist/rx.dom.js'
@@ -58,6 +59,7 @@ module.exports = function (grunt) {
             'src/requestanimationframescheduler.js',
             'src/mutationobserverscheduler.js',
             'src/geolocation.js',
+            'src/fromreader.js',
             'src/outro.js'
           ],
           dest: 'dist/rx.dom.compat.js'
