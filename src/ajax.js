@@ -111,7 +111,7 @@
           observer.onError(xhr);
         };
         // body is expected as an object
-        if ( settings.body && typeof settings.body === 'Object') {
+        if ( settings.body && typeof settings.body === 'object') {
           // Add proper header so server can parse it
           xhr.setRequestHeader("Content-Type","application/json");
           settings.body = JSON.stringify(settings.body);
