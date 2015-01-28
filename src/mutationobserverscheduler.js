@@ -1,13 +1,10 @@
   var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
   if (!!BrowserMutationObserver) {
 
-
   /**
    * Scheduler that uses a MutationObserver changes as the scheduling mechanism
    */
   Scheduler.mutationObserver = (function () {
-
-
 
     var queue = [], queueId = 0;
 

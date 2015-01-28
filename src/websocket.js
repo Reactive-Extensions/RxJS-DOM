@@ -39,11 +39,11 @@
       };
       var messageHandler = function(e) { obs.onNext(e); };
       var errHandler = function(e) { obs.onError(e); };
-      var closeHandler = function(e) { 
+      var closeHandler = function(e) {
         if(e.code !== 1000 || !e.wasClean) {
           obs.onError(e);
         }
-        obs.onCompleted(); 
+        obs.onCompleted();
       };
 
       openObserver && socket.addEventListener('open', openHandler, false);
@@ -64,13 +64,13 @@
       socket.readyState === WebSocket.OPEN && socket.send(data);
     },
     function(e) {
-      if(!e.code) {
+      if (!e.code) {
         throw new Error('no code specified. be sure to pass { code: ###, reason: "" } to onError()');
       }
 
       socketClose(e.code, e.reason || '');
     },
-    function(){
+    function() {
       socketClose(1000, '');
     });
 
