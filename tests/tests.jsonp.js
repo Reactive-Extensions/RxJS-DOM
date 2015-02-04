@@ -6,11 +6,11 @@ asyncTest('jsonpRequest with jsonp callback success', function () {
     observer.onNext(data);
     observer.onCompleted();
   };
-  
+
   var fakeScript = "data:text/javascript;base64," + btoa(
     'testCallback([{ "id": 123 }])'
   );
-  
+
   var source = Rx.DOM.jsonpRequest({
     url: fakeScript,
     jsonpCallback: 'testCallback'
@@ -21,8 +21,8 @@ asyncTest('jsonpRequest with jsonp callback success', function () {
       equal(123, x[0].id);
       equal(true, x[0].correct);
     },
-    function (e) { 
-      ok(false); 
+    function (e) {
+      ok(false);
     },
     function () {
       ok(true);
@@ -45,8 +45,50 @@ asyncTest('jsonpRequest without jsonp callback success', function () {
     function (x) {
       equal(123, x[0].id);
     },
-    function (e) { 
-      ok(false); 
+    function (e) {
+      ok(false);
+    },
+    function () {
+      ok(true);
+      QUnit.start();
+    }
+  );
+});
+
+asyncTest('jsonpRequest without jsonp callback success with 2 observers', function () {
+  var fakeScript = "data:text/javascript;base64," + btoa(
+    'testCallback([{ "id": 123 }])'
+  );
+
+  var source = Rx.DOM.jsonpRequest({
+    url: fakeScript,
+    jsonpCallback: 'testCallback'
+  });
+
+  source.subscribe(
+    function (x) {
+      equal(123, x[0].id);
+    },
+    function (e) {
+      ok(false);
+    },
+    function () {
+      ok(true);
+      QUnit.start();
+    }
+  );
+
+  var source2 = Rx.DOM.jsonpRequest({
+    url: fakeScript,
+    jsonpCallback: 'testCallback'
+  });
+
+  source2.subscribe(
+    function (x) {
+      equal(123, x[0].id);
+    },
+    function (e) {
+      ok(false);
     },
     function () {
       ok(true);
