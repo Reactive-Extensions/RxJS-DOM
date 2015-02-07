@@ -20,7 +20,7 @@ var open = Observer.create(function(e) {
 });
 
 // an observer for when the socket is about to close
-var closing = Observer.create(function() {
+var closingObserver = Observer.create(function() {
   console.log('socket is about to close');
 });
 
