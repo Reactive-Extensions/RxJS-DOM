@@ -95,7 +95,7 @@
           }
 
           if (xhr.readyState === 4) {
-            var status = xhr.status;
+            var status = xhr.status == 1223 ? 204 : xhr.status;
             if ((status >= 200 && status <= 300) || status === 0 || status === '') {
               observer.onNext(xhr);
               observer.onCompleted();
