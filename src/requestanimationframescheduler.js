@@ -37,26 +37,16 @@
     }
 
     function scheduleRelative(state, dueTime, action) {
-      var scheduler = this,
-        dt = Scheduler.normalize(dueTime);
-
+      var scheduler = this, dt = Scheduler.normalize(dueTime);
       if (dt === 0) { return scheduler.scheduleWithState(state, action); }
-
-      var disposable = new SingleAssignmentDisposable(),
-          id;
-      var scheduleFunc = function () {
-        if (id) { cancelAnimFrame(id); }
-        if (dt - scheduler.now() <= 0) {
-          !disposable.isDisposed && (disposable.setDisposable(action(scheduler, state)));
-        } else {
-          id = requestAnimFrame(scheduleFunc);
+      var disposable = new SingleAssignmentDisposable();
+      var id = root.setTimeout(function () {
+        if (!disposable.isDisposed) {
+          disposable.setDisposable(action(scheduler, state));
         }
-      };
-
-      id = requestAnimFrame(scheduleFunc);
-
+      }, dt);
       return new CompositeDisposable(disposable, disposableCreate(function () {
-        cancelAnimFrame(id);
+        root.clearTimeout(id);
       }));
     }
 

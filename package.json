@@ -2,7 +2,7 @@
   "name": "rx-dom",
   "title": "The Reactive Extensions Bindings for the DOM.",
   "description": "Library for using DOM elements as well as Ajax requests",
-  "version": "4.0.4",
+  "version": "5.0.0",
   "homepage": "https://github.com/Reactive-Extensions/RxJS-DOM",
   "author": {
     "name": "MS Open Tech",
@@ -30,9 +30,8 @@
     "grunt-contrib-concat": "*",
     "grunt-contrib-qunit": "*",
     "grunt-contrib-watch": "*",
-    "grunt-saucelabs": "*",
     "grunt-jscs": "*",
-    "load-grunt-tasks": "*"
+    "load-grunt-tasks":"*"
   },
   "jam": {
     "main": "dist/rx.dom.js"
@@ -51,7 +50,7 @@
     "WebWorkers",
     "Geolocation"
   ],
-  "main": "rx.dom.node.js",
+  "main": "index.js",
   "scripts": {
     "test": "grunt"
   }

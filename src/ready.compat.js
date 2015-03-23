@@ -1,4 +1,4 @@
-  /** 
+  /**
    * Creates an observable sequence when the DOM is loaded
    * @returns {Observable} An observable sequence fired when the DOM is loaded
    */
@@ -16,22 +16,14 @@
           return function () {
             document.removeEventListener( 'DOMContentLoaded', handler, false );
             root.removeEventListener( 'load', handler, false );
-          };       
-        } else if (document.attachEvent) {
-          document.attachEvent( 'onDOMContentLoaded', handler );
-          root.attachEvent( 'onload', handler );  
-          return function () {
-            document.attachEvent( 'DOMContentLoaded', handler );
-            root.attachEvent( 'load', handler );
-          };                          
-        } else {
-          document['onload'] = handler;  
-          root['onDOMContentLoaded'] = handler;  
-          return function () {
-            document['onload'] = null;  
-            root['onDOMContentLoaded'] = null;  
           };
-        }        
+        } else if (document.attachEvent) {
+          root.attachEvent( 'onload', handler );
+          return function () { root.detachEvent( 'onload', handler ); };
+        } else {
+          document['onload'] = handler;
+          return function () { document['onload'] = null; };
+        }
       }
 
       var returnFn = noop;
@@ -42,5 +34,5 @@
       }
 
       return returnFn;
-    }).publish().refCount();
+    });
   };

@@ -56,15 +56,22 @@
   var ajaxRequest = dom.ajax = function (settings) {
     typeof settings === 'string' && (settings = { method: 'GET', url: settings, async: true });
     settings.method || (settings.method = 'GET');
+    settings.contentType === undefined && (settings.contentType = 'application/x-www-form-urlencoded; charset=UTF-8');
     settings.crossDomain === undefined && (settings.crossDomain = false);
     settings.async === undefined && (settings.async = true);
+    settings.hasContent = typeof settings.body !== 'undefined';
+    settings.headers === undefined && (settings.headers = {});
+
+    if (!settings.crossDomain && !settings.headers['X-Requested-With']) {
+      settings.headers['X-Requested-With'] = 'XMLHttpRequest';
+    }
 
     return new AnonymousObservable(function (observer) {
       var isDone = false;
 
       var xhr;
       try {
-        xhr = settings.crossDomain ? getCORSRequest() : getXMLHttpRequest();
+        var xhr = settings.crossDomain ? getCORSRequest() : getXMLHttpRequest();
       } catch (err) {
         observer.onError(err);
       }
@@ -76,12 +83,10 @@
           xhr.open(settings.method, settings.url, settings.async);
         }
 
-        if (settings.headers) {
-          var headers = settings.headers;
-          for (var header in headers) {
-            if (hasOwnProperty.call(headers, header)) {
-              xhr.setRequestHeader(header, headers[header]);
-            }
+        var headers = settings.headers;
+        for (var header in headers) {
+          if (hasOwnProperty.call(headers, header)) {
+            xhr.setRequestHeader(header, headers[header]);
           }
         }
 
@@ -110,13 +115,7 @@
         xhr.onerror = function () {
           observer.onError(xhr);
         };
-        // body is expected as an object
-        if ( settings.body && typeof settings.body === 'object') {
-          // Add proper header so server can parse it
-          xhr.setRequestHeader("Content-Type","application/json");
-          settings.body = JSON.stringify(settings.body);
-        }
-        xhr.send(settings.body || null);
+        xhr.send(settings.hasContent && settings.body || null);
       } catch (e) {
         observer.onError(e);
       }

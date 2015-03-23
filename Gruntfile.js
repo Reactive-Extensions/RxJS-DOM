@@ -35,7 +35,7 @@ module.exports = function (grunt) {
             'src/eventsource.js',
             'src/mutationobserver.js',
             'src/requestanimationframescheduler.js',
-            'src/mutationobserverscheduler.js',
+            'src/microtaskscheduler.js',
             'src/geolocation.js',
             'src/fromreader.js',
             'src/outro.js'
@@ -57,7 +57,7 @@ module.exports = function (grunt) {
             'src/eventsource.js',
             'src/mutationobserver.js',
             'src/requestanimationframescheduler.js',
-            'src/mutationobserverscheduler.js',
+            'src/microtaskscheduler.js',
             'src/geolocation.js',
             'src/fromreader.js',
             'src/outro.js'

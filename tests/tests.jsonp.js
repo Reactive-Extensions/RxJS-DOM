@@ -1,10 +1,8 @@
 module('JSONP Tests');
 
 asyncTest('jsonpRequest with jsonp callback success', function () {
-  window.testCallback = function(observer, data) {
+  window.testCallback = function(data) {
     data[0].correct = true;
-    observer.onNext(data);
-    observer.onCompleted();
   };
 
   var fakeScript = "data:text/javascript;base64," + btoa(

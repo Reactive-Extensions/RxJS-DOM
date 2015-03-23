@@ -60,7 +60,7 @@
         };
 
         var cleanup = function _cleanup() {
-          tag.onload = tag.onreadystatechange = null;
+          tag.onload = tag.onreadystatechange = tag.onerror = null;
           head && tag.parentNode && destroy(tag);
           tag = undefined;
         };
@@ -72,6 +72,7 @@
             cleanup();
           }
         };
+        tag.onerror = function (e) { observer.onError(e); }
         head.insertBefore(tag, head.firstChild);
 
         return function () {

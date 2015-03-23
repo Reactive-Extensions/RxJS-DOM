@@ -8,7 +8,7 @@
         canvas = document.createElement( 'canvas' );
 
         // ie IE < 9
-        if (typeof G_vmlCanvasManager !== 'undefined') { 
+        if (typeof G_vmlCanvasManager !== 'undefined') {
             G_vmlCanvasManager.initElement(canvas);
         }
 
@@ -26,7 +26,7 @@
                 function (x) { return true; },
                 function (x) { return x + 1; },
                 function (x) { return x; },
-                Rx.Scheduler.requestAnimationFrame
+                Rx.Scheduler.mutationObserver
             )
             .timestamp()
             .subscribe(draw);
@@ -52,4 +52,3 @@
 
     window.onload = main;
 }(window));
- 
