@@ -195,6 +195,27 @@
     }
   }
 
+  function normalizeAjaxLoadEvent(e, xhr, settings) {
+    var response = ('response' in xhr) ? xhr.response :
+      (settings.responseType === 'json' ? JSON.parse(xhr.responseText) : xhr.responseText);
+    return {
+      response: response,
+      status: xhr.status,
+      responseType: xhr.responseType,
+      xhr: xhr,
+      originalEvent: e
+    };
+  }
+
+  function normalizeAjaxErrorEvent(e, xhr, type) {
+    return {
+      type: type,
+      status: xhr.status,
+      xhr: xhr,
+      originalEvent: e
+    };
+  }
+
   /**
    * Creates an observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
    *
@@ -215,23 +236,34 @@
    *
    * @returns {Observable} An observable sequence containing the XMLHttpRequest.
   */
-  var ajaxRequest = dom.ajax = function (settings) {
-    typeof settings === 'string' && (settings = { method: 'GET', url: settings, async: true });
-    settings.method || (settings.method = 'GET');
-    settings.contentType === undefined && (settings.contentType = 'application/x-www-form-urlencoded; charset=UTF-8');
-    settings.crossDomain === undefined && (settings.crossDomain = false);
-    settings.async === undefined && (settings.async = true);
-    settings.hasContent = typeof settings.body !== 'undefined';
-    settings.headers === undefined && (settings.headers = {});
+  var ajaxRequest = dom.ajax = function (options) {
+    var settings = {
+      method: 'GET',
+      crossDomain: false,
+      contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+      async: true,
+      headers: {},
+      responseType: 'text'
+    };
+
+    if(typeof options === 'string') {
+      settings.url = options;
+    } else {
+      for(var prop in options) {
+        if(hasOwnProperty.call(options, prop)) {
+          settings[prop] = options[prop];
+        }
+      }
+    }
 
     if (!settings.crossDomain && !settings.headers['X-Requested-With']) {
       settings.headers['X-Requested-With'] = 'XMLHttpRequest';
     }
+    settings.hasContent = settings.body !== undefined;
 
     return new AnonymousObservable(function (observer) {
       var isDone = false;
 
-      var xhr;
       try {
         var xhr = settings.crossDomain ? getCORSRequest() : getXMLHttpRequest();
       } catch (err) {
@@ -252,31 +284,50 @@
           }
         }
 
-        xhr.onreadystatechange = xhr.onload = function () {
-          // Check if CORS
-          if (settings.crossDomain) {
-            observer.onNext(xhr);
+        if(!!xhr.upload || (!('withCredentials' in xhr) && !!root.XDomainRequest)) {
+          xhr.onload = function(e) {
+            if(settings.progressObserver) {
+              settings.progressObserver.onNext(e);
+              settings.progressObserver.onCompleted();
+            }
+            observer.onNext(normalizeAjaxLoadEvent(e, xhr, settings));
             observer.onCompleted();
             isDone = true;
-            return;
+          };
+
+          if(settings.progressObserver) {
+            xhr.onprogress = function(e) {
+              settings.progressObserver.onNext(e);
+            };
           }
 
-          if (xhr.readyState === 4) {
-            var status = xhr.status == 1223 ? 204 : xhr.status;
-            if ((status >= 200 && status <= 300) || status === 0 || status === '') {
-              observer.onNext(xhr);
-              observer.onCompleted();
-            } else {
-              observer.onError(xhr);
-            }
-
+          xhr.onerror = function(e) {
+            settings.progressObserver && settings.progressObserver.onError(e);
+            observer.onError(normalizeAjaxErrorEvent(e, xhr, 'error'));
             isDone = true;
-          }
-        };
+          };
 
-        xhr.onerror = function () {
-          observer.onError(xhr);
-        };
+          xhr.onabort = function(e) {
+            settings.progressObserver && settings.progressObserver.onError(e);
+            observer.onError(normalizeAjaxErrorEvent(e, xhr, 'abort'));
+            isDone = true;
+          };
+        } else {
+
+          xhr.onreadystatechange = function (e) {
+            if (xhr.readyState === 4) {
+              var status = xhr.status == 1223 ? 204 : xhr.status;
+              if ((status >= 200 && status <= 300) || status === 0 || status === '') {
+                observer.onNext(normalizeAjaxLoadEvent(e, xhr, settings));
+                observer.onCompleted();
+              } else {
+                observer.onError(normalizeAjaxErrorEvent(e, xhr, 'error'));
+              }
+              isDone = true;
+            }
+          };
+        }
+
         xhr.send(settings.hasContent && settings.body || null);
       } catch (e) {
         observer.onError(e);
@@ -296,7 +347,7 @@
    * @returns {Observable} The observable sequence which contains the response from the Ajax POST.
    */
   dom.post = function (url, body) {
-    return ajaxRequest({ url: url, body: body, method: 'POST', async: true });
+    return ajaxRequest({ url: url, body: body, method: 'POST' });
   };
 
   /**
@@ -306,7 +357,7 @@
    * @returns {Observable} The observable sequence which contains the response from the Ajax GET.
    */
   var observableGet = dom.get = function (url) {
-    return ajaxRequest({ url: url, method: 'GET', async: true });
+    return ajaxRequest({ url: url });
   };
 
   /**
@@ -317,8 +368,8 @@
    */
   dom.getJSON = function (url) {
     if (!root.JSON && typeof root.JSON.parse !== 'function') { throw new TypeError('JSON is not supported in your runtime.'); }
-    return observableGet(url).map(function (xhr) {
-      return JSON.parse(xhr.responseText);
+    return ajaxRequest({url: url, responseType: 'json'}).map(function (x) {
+      return x.response;
     });
   };
 
@@ -350,62 +401,79 @@
    *
    * @returns {Observable} A cold observable containing the results from the JSONP call.
    */
-  dom.jsonpRequest = (function () {
-    var uniqueId = 0;
-    var defaultCallback = function _defaultCallback(observer, data) {
-      observer.onNext(data);
-      observer.onCompleted();
-    };
+   dom.jsonpRequest = (function() {
+     var id = 0;
 
-    return function (settings) {
-      return new AnonymousObservable(function (observer) {
-        typeof settings === 'string' && (settings = { url: settings });
-        !settings.jsonp && (settings.jsonp = 'JSONPCallback');
+     return function(options) {
+       return new AnonymousObservable(function(observer) {
 
-        var head = document.getElementsByTagName('head')[0] || document.documentElement,
-          tag = document.createElement('script'),
-          handler = 'rxjscallback' + uniqueId++;
+         var callbackId = 'callback_' + (id++).toString(36);
 
-        if (typeof settings.jsonpCallback === 'string') {
-          handler = settings.jsonpCallback;
-        }
+         var settings = {
+           jsonp: 'JSONPCallback',
+           async: true,
+           jsonpCallback: 'rxjsjsonpCallbacks' + callbackId
+         };
 
-        settings.url = settings.url.replace(new RegExp('([?|&]'+settings.jsonp+'=)[^\&]+'), '$1' + handler);
+         if(typeof options === 'string') {
+           settings.url = options;
+         } else {
+           for(var prop in options) {
+             if(hasOwnProperty.call(options, prop)) {
+               settings[prop] = options[prop];
+             }
+           }
+         }
 
-        var existing = root[handler];
-        root[handler] = function(data, recursed) {
-          if (existing) {
-            existing(data, true) && (existing = null);
-            return false;
-          }
-          defaultCallback(observer, data);
-          !recursed && (root[handler] = null);
-          return true;
-        };
+         var script = document.createElement('script');
+         script.type = 'text/javascript';
+         script.async = settings.async;
+         script.src = settings.url.replace(settings.jsonp, settings.jsonpCallback);
 
-        var cleanup = function _cleanup() {
-          tag.onload = tag.onreadystatechange = tag.onerror = null;
-          head && tag.parentNode && destroy(tag);
-          tag = undefined;
-        };
+         root[settings.jsonpCallback] = function(data) {
+           root[settings.jsonpCallback].called = true;
+           root[settings.jsonpCallback].data = data;
+         };
 
-        tag.src = settings.url;
-        tag.async = true;
-        tag.onload = tag.onreadystatechange = function (_, abort) {
-          if ( abort || !tag.readyState || /loaded|complete/.test(tag.readyState) ) {
-            cleanup();
-          }
-        };
-        tag.onerror = function (e) { observer.onError(e); }
-        head.insertBefore(tag, head.firstChild);
+         var handler = function(e) {
+           if(e.type === 'load' && !root[settings.jsonpCallback].called) {
+             e = { type: 'error' };
+           }
+           var status = e.type === 'error' ? 400 : 200;
+           var data = root[settings.jsonpCallback].data;
 
-        return function () {
-          if (!tag) { return; }
-          cleanup();
-        };
-      });
-    };
-  })();
+           if(status === 200) {
+             observer.onNext({
+               status: status,
+               responseType: 'jsonp',
+               response: data,
+               originalEvent: e
+             });
+
+             observer.onCompleted();
+           }
+           else {
+             observer.onError({
+               type: 'error',
+               status: status,
+               originalEvent: e
+             });
+           }
+         };
+
+         script.onload = script.onreadystatechanged = script.onerror = handler;
+
+         var head = document.getElementsByTagName('head')[0] || document.documentElement;
+         head.insertBefore(script, head.firstChild);
+
+         return function() {
+           script.onload = script.onreadystatechanged = script.onerror = null;
+           destroy(script);
+           script = null;
+         };
+       });
+     }
+   }());
 
    /**
    * Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.

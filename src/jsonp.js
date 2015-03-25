@@ -26,59 +26,76 @@
    *
    * @returns {Observable} A cold observable containing the results from the JSONP call.
    */
-  dom.jsonpRequest = (function () {
-    var uniqueId = 0;
-    var defaultCallback = function _defaultCallback(observer, data) {
-      observer.onNext(data);
-      observer.onCompleted();
-    };
+   dom.jsonpRequest = (function() {
+     var id = 0;
 
-    return function (settings) {
-      return new AnonymousObservable(function (observer) {
-        typeof settings === 'string' && (settings = { url: settings });
-        !settings.jsonp && (settings.jsonp = 'JSONPCallback');
+     return function(options) {
+       return new AnonymousObservable(function(observer) {
 
-        var head = document.getElementsByTagName('head')[0] || document.documentElement,
-          tag = document.createElement('script'),
-          handler = 'rxjscallback' + uniqueId++;
+         var callbackId = 'callback_' + (id++).toString(36);
 
-        if (typeof settings.jsonpCallback === 'string') {
-          handler = settings.jsonpCallback;
-        }
+         var settings = {
+           jsonp: 'JSONPCallback',
+           async: true,
+           jsonpCallback: 'rxjsjsonpCallbacks' + callbackId
+         };
 
-        settings.url = settings.url.replace(new RegExp('([?|&]'+settings.jsonp+'=)[^\&]+'), '$1' + handler);
+         if(typeof options === 'string') {
+           settings.url = options;
+         } else {
+           for(var prop in options) {
+             if(hasOwnProperty.call(options, prop)) {
+               settings[prop] = options[prop];
+             }
+           }
+         }
 
-        var existing = root[handler];
-        root[handler] = function(data, recursed) {
-          if (existing) {
-            existing(data, true) && (existing = null);
-            return false;
-          }
-          defaultCallback(observer, data);
-          !recursed && (root[handler] = null);
-          return true;
-        };
+         var script = document.createElement('script');
+         script.type = 'text/javascript';
+         script.async = settings.async;
+         script.src = settings.url.replace(settings.jsonp, settings.jsonpCallback);
 
-        var cleanup = function _cleanup() {
-          tag.onload = tag.onreadystatechange = tag.onerror = null;
-          head && tag.parentNode && destroy(tag);
-          tag = undefined;
-        };
+         root[settings.jsonpCallback] = function(data) {
+           root[settings.jsonpCallback].called = true;
+           root[settings.jsonpCallback].data = data;
+         };
 
-        tag.src = settings.url;
-        tag.async = true;
-        tag.onload = tag.onreadystatechange = function (_, abort) {
-          if ( abort || !tag.readyState || /loaded|complete/.test(tag.readyState) ) {
-            cleanup();
-          }
-        };
-        tag.onerror = function (e) { observer.onError(e); }
-        head.insertBefore(tag, head.firstChild);
+         var handler = function(e) {
+           if(e.type === 'load' && !root[settings.jsonpCallback].called) {
+             e = { type: 'error' };
+           }
+           var status = e.type === 'error' ? 400 : 200;
+           var data = root[settings.jsonpCallback].data;
 
-        return function () {
-          if (!tag) { return; }
-          cleanup();
-        };
-      });
-    };
-  })();
+           if(status === 200) {
+             observer.onNext({
+               status: status,
+               responseType: 'jsonp',
+               response: data,
+               originalEvent: e
+             });
+
+             observer.onCompleted();
+           }
+           else {
+             observer.onError({
+               type: 'error',
+               status: status,
+               originalEvent: e
+             });
+           }
+         };
+
+         script.onload = script.onreadystatechanged = script.onerror = handler;
+
+         var head = document.getElementsByTagName('head')[0] || document.documentElement;
+         head.insertBefore(script, head.firstChild);
+
+         return function() {
+           script.onload = script.onreadystatechanged = script.onerror = null;
+           destroy(script);
+           script = null;
+         };
+       });
+     }
+   }());
