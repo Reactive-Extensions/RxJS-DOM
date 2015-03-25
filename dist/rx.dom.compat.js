@@ -796,7 +796,7 @@
 
     function noop() {}
 
-    var tasks = new Array(1000), taskId = 0, scheduleMethod, clearMethod = noop;
+    var tasks = [], taskId = 0, scheduleMethod, clearMethod = noop;
 
     var setImmediate = root.setImmediate, clearImmediate = root.clearImmediate;
 
@@ -817,8 +817,7 @@
     if (!!BrowserMutationObserver) {
 
       var observer = new BrowserMutationObserver(function() {
-        var toProcess = queue.slice(0);
-        queue = new Array(1000);
+        var toProcess = tasks.slice(0);
 
         toProcess.forEach(function (func) {
           func();
@@ -835,14 +834,14 @@
       }, false);
 
       scheduleMethod = function (action) {
-        var id = queueId++;
-        queue[id] = action;
+        var id = taskId++;
+        tasks[id] = action;
         element.setAttribute('drainQueue', 'drainQueue');
         return id;
       };
 
       var clearMethod = function(id) {
-        queue[id] = undefined;
+        delete tasks[id];
       };
     } else if (typeof setImmediate === 'function') {
       scheduleMethod = setImmediate;

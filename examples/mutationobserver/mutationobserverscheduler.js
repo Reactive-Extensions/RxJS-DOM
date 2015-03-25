@@ -3,11 +3,11 @@
   function initialize() {
     var ul = document.getElementById('results');
 
-    Rx.Observable.range(0, 10, Rx.Scheduler.mutationObserver)
+    Rx.Observable.range(0, 10, Rx.Scheduler.microtask)
       .subscribe(function (results) {
         var li = document.createElement('li');
         li.innerHTML = results;
-        ul.appendChild(li);      
+        ul.appendChild(li);
       });
   }
 

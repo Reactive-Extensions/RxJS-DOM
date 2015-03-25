@@ -13,11 +13,11 @@
     });
 
     request.subscribe(
-      function (xhr) {
-        result.textContent = 'Page Title: ' + getTitle(xhr.responseText);
+      function (x) {
+        result.textContent = 'Page Title: ' + getTitle(x.xhr.responseText);
       },
       function (err) {
-        result.textContent = 'Error response: ' + xhr.message;
+        result.textContent = 'Error response: ' + err;
       }
     )
   }
