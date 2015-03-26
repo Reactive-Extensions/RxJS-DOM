@@ -385,7 +385,7 @@
   })();
 
   /**
-   * Creates a cold observable JSONP Request with the specified settings.
+   * Creates an observable JSONP Request with the specified settings.
    *
    * @example
    *   source = Rx.DOM.jsonpRequest('http://www.bing.com/?q=foo&JSONPCallback=?');
@@ -714,13 +714,34 @@
   /**
    * Scheduler that uses a MutationObserver changes as the scheduling mechanism
    */
-  Scheduler.mutationObserver = Scheduler.microtask = (function () {
+  Scheduler.microtask = (function () {
 
-    function noop() {}
+    var nextHandle = 1, tasksByHandle = {}, currentlyRunning = false, scheduleMethod;
 
-    var tasks = [], taskId = 0, scheduleMethod, clearMethod = noop;
+    function clearMethod(handle) {
+      delete tasksByHandle[handle];
+    }
 
-    var setImmediate = root.setImmediate, clearImmediate = root.clearImmediate;
+    function runTask(handle) {
+      if (currentlyRunning) {
+        root.setTimeout(function () { runTask(handle) }, 0);
+      } else {
+        var task = tasksByHandle[handle];
+        if (task) {
+          currentlyRunning = true;
+          try {
+            task();
+          } catch (e) {
+            throw e;
+          } finally {
+            clearMethod(handle);
+            currentlyRunning = false;
+          }
+        }
+      }
+    }
+
+    var setImmediate = root.setImmediate;
 
     function postMessageSupported () {
       // Ensure not in a worker
@@ -738,12 +759,12 @@
     var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
     if (!!BrowserMutationObserver) {
 
-      var observer = new BrowserMutationObserver(function() {
-        var toProcess = tasks.slice(0);
+      var PREFIX = 'drainqueue_';
 
-        toProcess.forEach(function (func) {
-          func();
-        });
+      var observer = new BrowserMutationObserver(function(mutations) {
+        mutations.forEach(function (mutation) {
+          runTask(mutation.attributeName.substring(PREFIX.length));
+        })
       });
 
       var element = document.createElement('div');
@@ -756,71 +777,76 @@
       }, false);
 
       scheduleMethod = function (action) {
-        var id = taskId++;
-        tasks[id] = action;
-        element.setAttribute('drainQueue', 'drainQueue');
+        var id = nextHandle++;
+        tasksByHandle[id] = action;
+        element.setAttribute(PREFIX + id, 'drainQueue');
         return id;
-      };
-
-      var clearMethod = function(id) {
-        delete tasks[id];
       };
     } else if (typeof setImmediate === 'function') {
       scheduleMethod = setImmediate;
-      clearMethod = clearImmediate;
     } else if (postMessageSupported()) {
       var MSG_PREFIX = 'ms.rx.schedule' + Math.random();
 
-      var onGlobalPostMessage = function (event) {
+      function onGlobalPostMessage(event) {
         // Only if we're a match to avoid any other global events
         if (typeof event.data === 'string' && event.data.substring(0, MSG_PREFIX.length) === MSG_PREFIX) {
-          var handleId = event.data.substring(MSG_PREFIX.length), action = tasks[handleId];
-          action();
-          tasks[handleId] = undefined;
+          runTask(event.data.substring(MSG_PREFIX.length));
         }
       }
 
       if (root.addEventListener) {
         root.addEventListener('message', onGlobalPostMessage, false);
-      } else {
-        root.attachEvent('onmessage', onGlobalPostMessage, false);
+      } else if (root.attachEvent){
+        root.attachEvent('onmessage', onGlobalPostMessage);
       }
 
       scheduleMethod = function (action) {
-        var currentId = taskId++;
-        tasks[currentId] = action;
+        var id = nextHandle++;
+        tasksByHandle[currentId] = action;
         root.postMessage(MSG_PREFIX + currentId, '*');
+        return id;
       };
     } else if (!!root.MessageChannel) {
       var channel = new root.MessageChannel();
 
       channel.port1.onmessage = function (event) {
-        var id = event.data, action = tasks[id];
-        action();
-        tasks[id] = undefined;
+        runTask(event.data);
       };
 
       scheduleMethod = function (action) {
-        var id = taskId++;
-        tasks[id] = action;
+        var id = nextHandle++;
+        tasksByHandle[id] = action;
         channel.port2.postMessage(id);
+        return id;
       };
     } else if ('document' in root && 'onreadystatechange' in root.document.createElement('script')) {
 
       scheduleMethod = function (action) {
         var scriptElement = root.document.createElement('script');
+        var id = nextHandle++;
+        tasksByHandle[id] = action;
+
         scriptElement.onreadystatechange = function () {
-          action();
+          runTask(id);
           scriptElement.onreadystatechange = null;
           scriptElement.parentNode.removeChild(scriptElement);
           scriptElement = null;
         };
         root.document.documentElement.appendChild(scriptElement);
+
+        return id;
       };
 
     } else {
-      scheduleMethod = function (action) { return localSetTimeout(action, 0); };
-      clearMethod = localClearTimeout;
+      scheduleMethod = function (action) {
+        var id = nextHandle++;
+        tasksByHandle[id] = action;
+        root.setTimeout(function () {
+          runTask(id);
+        }, 0);
+
+        return id;
+      };
     }
 
     function scheduleNow(state, action) {

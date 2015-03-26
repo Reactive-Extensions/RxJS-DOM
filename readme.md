@@ -5,7 +5,7 @@
 [![NuGet](http://img.shields.io/nuget/v/RxJS-Bridges-HTML.svg)](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
-RxJS-DOM <sup>4.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript
+RxJS-DOM <sup>5.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript
 ==========================================================
 ## OVERVIEW
 
@@ -59,11 +59,9 @@ The goal here is to take the input from our textbox and debounce it in a way tha
 var textInput = document.getElementById('textInput');
 var throttledInput = Rx.DOM.keyup(textInput);
 ```
-Since we're only interested in the text, we'll use the `select` or `map` method to take the event object and return the target's value.  
+Since we're only interested in the text, we'll use the `map` method to take the event object and return the target's value, or we can call `pluck` to the same effect.
 ```js
-	.map( function (ev) {
-		return ev.target.value;
-	})
+	.pluck('target','value')
 ```
 We're also not interested in query terms less than two letters, so we'll trim that user input by using the `where` or `filter` method returning whether the string length is appropriate.
 ```js
@@ -84,9 +82,7 @@ Putting it all together, our throttledInput looks like the following:
 ```js
 var textInput = document.getElementById('textInput');
 var throttledInput = Rx.DOM.keyup(textInput)
-	.map( function (ev) {
-		return textInput.value;
-	})
+	.pluck('target','value')
 	.filter( function (text) {
 		return text.length > 2;
 	})
@@ -128,7 +124,7 @@ function createLineItem(text) {
 }
 
 suggestions.subscribe( function (data) {
-  var results = data[1];
+  var results = data.response[1];
 
   clearSelector(resultList);
 
@@ -156,7 +152,7 @@ You can contribute by reviewing and sending feedback on code checkins, suggestin
 
 ## LICENSE
 
-Copyright 2014 Microsoft Open Technologies
+Copyright Microsoft Open Technologies
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -1,12 +1,12 @@
-### `Rx.Scheduler.mutationObserver`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/mutationobserverscheduler.js "View in source") 
+### `Rx.Scheduler.microtask`
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/microtask.js "View in source")
 
-Gets an `Rx.Scheduler` that schedules schedules work on the `window.MutationObserver` for immediate actions.  This requires `window.MutationObserver` to be supported on your browser.
+Gets an `Rx.Scheduler` that schedules schedules work on the `window.MutationObserver` for immediate actions.  If this is not available, this defaults to `window.setImmediate`, `window.postMessage`, `window.MessageChannel`, `script.onreadystatechanged` and finally `setTimeout` in that order based upon what your browser supports.
 
 #### Example
 ```js
 var obs = Rx.Observable.return(
-  42, 
+  42,
   Rx.Scheduler.mutationObserver);
 
 obs.subscribe(function (x) {
@@ -20,7 +20,7 @@ obs.subscribe(function (x) {
 ### Location
 
 File:
-- [`/src/mutationobserverscheduler.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/mutationobserverscheduler.js)
+- [`/src/mutationobserverscheduler.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/microtaskscheduler.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
@@ -38,4 +38,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.mutationobserverscheduler.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.mutationobserverscheduler.js)
+- [`/tests/tests.microtask.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.microtask.js)

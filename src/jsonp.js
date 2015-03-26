@@ -10,7 +10,7 @@
   })();
 
   /**
-   * Creates a cold observable JSONP Request with the specified settings.
+   * Creates an observable JSONP Request with the specified settings.
    *
    * @example
    *   source = Rx.DOM.jsonpRequest('http://www.bing.com/?q=foo&JSONPCallback=?');

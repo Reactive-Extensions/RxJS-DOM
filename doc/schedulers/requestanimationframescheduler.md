@@ -1,12 +1,12 @@
 ### `Rx.Scheduler.requestAnimationFrame`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/requestanimationframescheduler.js "View in source") 
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/requestanimationframescheduler.js "View in source")
 
-Gets an `Rx.Scheduler` that schedules schedules work on the `window.requestAnimationFrame` for immediate actions.
+Gets an `Rx.Scheduler` that schedules schedules work on the `window.requestAnimationFrame` for immediate actions and defaults to `window.setTimeout` if not available.
 
 #### Example
 ```js
 var obs = Rx.Observable.return(
-  42, 
+  42,
   Rx.Scheduler.requestAnimationFrame);
 
 obs.subscribe(function (x) {
@@ -38,4 +38,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.requestanimationframescheduler.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.requestanimationframescheduler.js)
+- [`/tests/tests.requestanimationframescheduler.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.requestanimationframescheduler.js)
