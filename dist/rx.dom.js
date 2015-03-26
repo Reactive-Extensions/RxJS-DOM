@@ -741,8 +741,6 @@
       }
     }
 
-    var setImmediate = root.setImmediate;
-
     function postMessageSupported () {
       // Ensure not in a worker
       if (!root.postMessage || root.importScripts) { return false; }
@@ -782,8 +780,16 @@
         element.setAttribute(PREFIX + id, 'drainQueue');
         return id;
       };
-    } else if (typeof setImmediate === 'function') {
-      scheduleMethod = setImmediate;
+    } else if (typeof root.setImmediate === 'function') {
+      scheduleMethod = function (action) {
+        var id = nextHandle++;
+        tasksByHandle[id] = action;
+        root.setImmediate(function () {
+          runTask(id);
+        });
+
+        return id;
+      };
     } else if (postMessageSupported()) {
       var MSG_PREFIX = 'ms.rx.schedule' + Math.random();
 
