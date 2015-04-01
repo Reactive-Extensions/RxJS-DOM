@@ -587,16 +587,27 @@
     var observable = new AnonymousObservable(function (obs) {
       socket = protocol ? new root.WebSocket(url, protocol) : new root.WebSocket(url);
 
+      var buffer = [], isOpen = false;
+
       var openHandler = function(e) {
         openObserver.onNext(e);
         openObserver.onCompleted();
         socket.removeEventListener('open', openHandler, false);
+        isOpen = true;
       };
-      var messageHandler = function(e) { obs.onNext(e); };
+      var messageHandler = function(e) {
+        if (!isOpen) {
+          buffer.push(e);
+        } else if (isOpen && buffer.length > 0) {
+          while(buffer.length > 0) { obs.onNext(buffer.shift()); }
+        } else {
+          obs.onNext(e);
+        }
+      };
       var errHandler = function(e) { obs.onError(e); };
       var closeHandler = function(e) {
         if(e.code !== 1000 || !e.wasClean) {
-          obs.onError(e);
+          return obs.onError(e);
         }
         obs.onCompleted();
       };
