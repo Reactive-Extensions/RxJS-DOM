@@ -39,7 +39,7 @@ For a failed operation, the result will contain the following:
 
 The following example uses a simple URL to retrieve a list of products.
 ```js
-Rx.DOM.Request.ajax({ url: '/products', responseType: 'json'})
+Rx.DOM.ajax({ url: '/products', responseType: 'json'})
   .subscribe(
     function (data) {
       data.response.forEach(function (product) {
