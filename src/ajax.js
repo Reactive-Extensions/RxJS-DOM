@@ -24,8 +24,9 @@
 
   // Get CORS support even for older IE
   function getCORSRequest() {
-    if ('withCredentials' in root.XMLHttpRequest.prototype) {
-      return new root.XMLHttpRequest();
+    var xhr = new root.XMLHttpRequest();
+    if ('withCredentials' in xhr) {
+      return xhr;
     } else if (!!root.XDomainRequest) {
       return new XDomainRequest();
     } else {
