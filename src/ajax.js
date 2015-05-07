@@ -34,9 +34,9 @@
     }
   }
 
-  function normalizeAjaxLoadEvent(e, xhr, settings) {
-    var response = ('response' in xhr) ? xhr.response :
-      (settings.responseType === 'json' ? JSON.parse(xhr.responseText) : xhr.responseText);
+function normalizeAjaxLoadEvent(e, xhr, settings) {
+    var response = ('response' in xhr) ? xhr.response : xhr.responseText;
+    response = settings.responseType === 'json' ? JSON.parse(response) : response;
     return {
       response: response,
       status: xhr.status,

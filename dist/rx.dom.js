@@ -186,8 +186,9 @@
 
   // Get CORS support even for older IE
   function getCORSRequest() {
-    if ('withCredentials' in root.XMLHttpRequest.prototype) {
-      return new root.XMLHttpRequest();
+    var xhr = new root.XMLHttpRequest();
+    if ('withCredentials' in xhr) {
+      return xhr;
     } else if (!!root.XDomainRequest) {
       return new XDomainRequest();
     } else {
@@ -195,9 +196,9 @@
     }
   }
 
-  function normalizeAjaxLoadEvent(e, xhr, settings) {
-    var response = ('response' in xhr) ? xhr.response :
-      (settings.responseType === 'json' ? JSON.parse(xhr.responseText) : xhr.responseText);
+function normalizeAjaxLoadEvent(e, xhr, settings) {
+    var response = ('response' in xhr) ? xhr.response : xhr.responseText;
+    response = settings.responseType === 'json' ? JSON.parse(response) : response;
     return {
       response: response,
       status: xhr.status,
