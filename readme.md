@@ -28,7 +28,7 @@ npm install rx-dom
 ```
 ### Installing with [Bower](http://bower.io/)
 ```bash
-bower install rxjs-dom
+bower install rx-dom
 ```
 ### Installing with [Jam](http://jamjs.org/)
 ```bash
