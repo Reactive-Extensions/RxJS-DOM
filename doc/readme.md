@@ -87,4 +87,4 @@ Geolocation
 Schedulers
 
 - [`Rx.Scheduler.requestAnimationFrame`](schedulers/requestanimationframe.md)
-- [`Rx.Scheduler.mutationObserver`](schedulers/mutationobserver.md)
+- [`Rx.Scheduler.microtask`](schedulers/microtaskscheduler.md)
