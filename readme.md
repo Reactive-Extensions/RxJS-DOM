@@ -90,13 +90,13 @@ var throttledInput = Rx.DOM.keyup(textInput)
 	.distinctUntilChanged();
 ```
 
-Now that we have the throttled input from the textbox, we need to query our service, in this case, the Wikipedia API, for suggestions based upon our input.  To do this, we'll create a function called searchWikipedia which calls the `Rx.DOM.Request.jsonpRequest` method which wraps making a JSONP call.
+Now that we have the throttled input from the textbox, we need to query our service, in this case, the Wikipedia API, for suggestions based upon our input.  To do this, we'll create a function called searchWikipedia which calls the `Rx.DOM.jsonpRequest` method which wraps making a JSONP call.
 
 ```js
 function searchWikipedia(term) {
   var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
     + encodeURIComponent(term) + '&callback=JSONPCallback';
-  return Rx.Request.jsonpRequest(url);
+  return Rx.DOM.jsonpRequest(url);
 }
 ```
 
