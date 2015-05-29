@@ -1,7 +1,7 @@
 ### `Rx.Scheduler.microtask`
 [&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/microtask.js "View in source")
 
-Gets an `Rx.Scheduler` that schedules schedules work on the `window.MutationObserver` for immediate actions.  If this is not available, this defaults to `window.setImmediate`, `window.postMessage`, `window.MessageChannel`, `script.onreadystatechanged` and finally `setTimeout` in that order based upon what your browser supports.
+Gets an `Rx.Scheduler` that schedules work on the `window.MutationObserver` for immediate actions.  If this is not available, this defaults to `window.setImmediate`, `window.postMessage`, `window.MessageChannel`, `script.onreadystatechanged` and finally `setTimeout` in that order based upon what your browser supports.
 
 #### Example
 ```js
@@ -20,7 +20,7 @@ obs.subscribe(function (x) {
 ### Location
 
 File:
-- [`/src/mutationobserverscheduler.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/microtaskscheduler.js)
+- [`/src/microtaskscheduler.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/microtaskscheduler.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
