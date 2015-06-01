@@ -1,5 +1,5 @@
 ### `Rx.DOM.fromWebSocket(url, protocol, [observerOrOnNext])`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/websocket.js "View in source") 
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/websocket.js "View in source")
 
 Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
 
@@ -15,8 +15,11 @@ Creates a WebSocket Subject with a given URL, protocol and an optional observer 
 #### Example
 ```js
 // an observer for when the socket is open
-var open = Observer.create(function(e) {
+var openObserver = Observer.create(function(e) {
   console.info('socket open');
+
+  // Now it is safe to send a message
+  socket.onNext('test');
 });
 
 // an observer for when the socket is about to close
@@ -25,82 +28,27 @@ var closingObserver = Observer.create(function() {
 });
 
 // create a web socket subject
-socket = Rx.DOM.fromWebSocket('ws://echo.websockets.org', null, open, closingObserver);
-
-// send a message on the socket
-// this will queue until the socket is open.
-socket.onNext('test');
-
-// subscribing creates the underlying socket and will emit a stream of incoming
-// message events
-socket.subscribe(function(e) {
-  console.log('message: ', e.data); 
-},
-function(e) {
-  // errors and "unclean" closes land here
-  console.error('error: ', e);
-},
-function() {
-  // the socket has been closed
-  console.info('socket closed');
-});
-```
-
-### closing an already open web socket neatly
-```js
-// create a web socket subject
-socket = Rx.DOM.fromWebSocket('ws://echo.websockets.org', null, open, closingObserver);
-
-// this is an echo service, so it'll echo this back
-socket.onNext('close me');
+socket = Rx.DOM.fromWebSocket(
+  'ws://echo.websockets.org',
+  null, // no protocol
+  openObserver,
+  closingObserver);
 
 // subscribing creates the underlying socket and will emit a stream of incoming
 // message events
-socket.subscribe(function(e) {
-  // when we see our echoed response, let's kill the socket with a
-  // custom error
-  if(e.data === 'close me') {
-    socket.onCompleted(); // closes with code 1000 and reason ""
-  } 
-},
-function(e) {
-  // errors and "unclean" closes land here
-  console.error('error: ', e);
-},
-function() {
-  // the socket has been closed
-  console.info('socket closed');
-});
-
-```
-
-### closing an already open web socket with a custom error
-```js
-// create a web socket subject
-socket = Rx.DOM.fromWebSocket('ws://echo.websockets.org', null, open, closingObserver);
-
-// this is an echo service, so it'll echo this back
-socket.onNext('close me');
-
-// subscribing creates the underlying socket and will emit a stream of incoming
-// message events
-socket.subscribe(function(e) {
-  // when we see our echoed response, let's kill the socket with a
-  // custom error
-  if(e.data === 'close me') {
-    // close with a specified status code and reason
-    socket.onError({ code: 3001, reason: 'you told me to close' });
-  } 
-},
-function(e) {
-  // errors and "unclean" closes land here
-  console.error('error: ', e);
-},
-function() {
-  // the socket has been closed
-  console.info('socket closed');
-});
-
+socket.subscribe(
+  function(e) {
+    console.log('message: ', e.data);
+  },
+  function(e) {
+    // errors and "unclean" closes land here
+    console.error('error: ', e);
+  },
+  function() {
+    // the socket has been closed
+    console.info('socket closed');
+  }
+);
 ```
 
 ### Location
@@ -124,4 +72,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.websocket.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.fromwebsocket.js)
+- [`/tests/tests.websocket.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.fromwebsocket.js)

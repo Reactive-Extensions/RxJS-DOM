@@ -15,36 +15,34 @@
 
     var socket;
 
-    var socketClose = function(code, reason) {
-      if(socket) {
-        if(closingObserver) {
+    function socketClose(code, reason) {
+      if (socket) {
+        if (closingObserver) {
           closingObserver.onNext();
           closingObserver.onCompleted();
         }
-        if(!code) {
+        if (!code) {
           socket.close();
         } else {
           socket.close(code, reason);
         }
       }
-    };
+    }
 
     var observable = new AnonymousObservable(function (obs) {
       socket = protocol ? new WebSocket(url, protocol) : new WebSocket(url);
 
-      var openHandler = function(e) {
+      function openHandler(e) {
         openObserver.onNext(e);
         openObserver.onCompleted();
         socket.removeEventListener('open', openHandler, false);
-      };
-      var messageHandler = function(e) { obs.onNext(e); };
-      var errHandler = function(e) { obs.onError(e); };
-      var closeHandler = function(e) {
-        if(e.code !== 1000 || !e.wasClean) {
-          return obs.onError(e);
-        }
+      }
+      function messageHandler(e) { obs.onNext(e); }
+      function errHandler(e) { obs.onError(e); }
+      function closeHandler(e) {
+        if (e.code !== 1000 || !e.wasClean) { return obs.onError(e); }
         obs.onCompleted();
-      };
+      }
 
       openObserver && socket.addEventListener('open', openHandler, false);
       socket.addEventListener('message', messageHandler, false);
@@ -60,19 +58,20 @@
       };
     });
 
-    var observer = observerCreate(function (data) {
-      socket.readyState === WebSocket.OPEN && socket.send(data);
-    },
-    function(e) {
-      if (!e.code) {
-        throw new Error('no code specified. be sure to pass { code: ###, reason: "" } to onError()');
+    var observer = observerCreate(
+      function (data) {
+        socket && socket.readyState === WebSocket.OPEN && socket.send(data);
+      },
+      function(e) {
+        if (!e.code) {
+          throw new Error('no code specified. be sure to pass { code: ###, reason: "" } to onError()');
+        }
+        socketClose(e.code, e.reason || '');
+      },
+      function() {
+        socketClose(1000, '');
       }
-
-      socketClose(e.code, e.reason || '');
-    },
-    function() {
-      socketClose(1000, '');
-    });
+    );
 
     return Subject.create(observer, observable);
   };
