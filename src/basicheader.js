@@ -11,4 +11,5 @@
     defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }()),
     dom = Rx.DOM = {},
     hasOwnProperty = {}.hasOwnProperty,
-    noop = Rx.helpers.noop;
+    noop = Rx.helpers.noop,
+    isFunction = Rx.helpers.isFunction;

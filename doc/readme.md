@@ -1,4 +1,4 @@
-# RxJS-DOM <sup>v4.0</sup>
+# RxJS-DOM <sup>v6.0</sup>
 
 Reactive Extensions (Rx) is a library for composing asynchronous and event-based programs using observable sequences and LINQ-style query operators.  Data sequences can take many forms, such as a stream of data from a file or web service, web services requests, system notifications, or a series of events such as user input.  Reactive Extensions represents all these data sequences as observable sequences. An application can subscribe to these observable sequences to receive asynchronous notifications as new data arrive. This library provides bridges to common DOM related features such as events, Ajax requests, JSONP requests, and HTML5 features like WebSockets, Web Workers, Geolocation, MutationObservers and more.
 
@@ -88,3 +88,7 @@ Schedulers
 
 - [`Rx.Scheduler.requestAnimationFrame`](schedulers/requestanimationframe.md)
 - [`Rx.Scheduler.microtask`](schedulers/microtaskscheduler.md)
+
+[`FileReader`](https://developer.mozilla.org/en-US/docs/Web/API/FileReader)
+
+- [`Rx.DOM.fromReader`](operators/fromreader.md)

@@ -15,8 +15,8 @@
 
     for(var i = 0, len = events.length; i < len; i++) {
       (function (e) {
-        dom[e] = function (element, selector) {
-          return fromEvent(element, e, selector);
+        dom[e] = function (element, selector, useCapture) {
+          return fromEvent(element, e, selector, useCapture);
         };
       }(events[i]))
     }

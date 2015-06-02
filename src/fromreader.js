@@ -20,13 +20,8 @@
           subject.onCompleted();
         }
 
-        function errorHandler(e) {
-          subject.onError(e.target.error);
-        }
-
-        function progressHandler(e) {
-          progressObserver.onNext(e);
-        }
+        function errorHandler(e) { subject.onError(e.target.error); }
+        function progressHandler(e) { progressObserver.onNext(e); }
 
         reader.addEventListener('load', loadHandler, false);
         reader.addEventListener('error', errorHandler, false);

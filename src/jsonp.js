@@ -11,11 +11,6 @@
 
   /**
    * Creates an observable JSONP Request with the specified settings.
-   *
-   * @example
-   *   source = Rx.DOM.jsonpRequest('http://www.bing.com/?q=foo&JSONPCallback=?');
-   *   source = Rx.DOM.jsonpRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPCallback' });
-   *
    * @param {Object} settings Can be one of the following:
    *
    *  A string of the URL to make the JSONP call with the JSONPCallback=? in the url.

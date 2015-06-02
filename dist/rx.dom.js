@@ -46,64 +46,61 @@
     defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }()),
     dom = Rx.DOM = {},
     hasOwnProperty = {}.hasOwnProperty,
-    noop = Rx.helpers.noop;
+    noop = Rx.helpers.noop,
+    isFunction = Rx.helpers.isFunction;
 
-  function createListener (element, name, handler) {
+  function createListener (element, name, handler, useCapture) {
     if (element.addEventListener) {
-      element.addEventListener(name, handler, false);
+      element.addEventListener(name, handler, useCapture);
       return disposableCreate(function () {
-        element.removeEventListener(name, handler, false);
+        element.removeEventListener(name, handler, useCapture);
       });
     }
     throw new Error('No listener found');
   }
 
-  function createEventListener (el, eventName, handler) {
+  function createEventListener (el, eventName, handler, useCapture) {
     var disposables = new CompositeDisposable();
 
-    // Asume NodeList
-    if (Object.prototype.toString.call(el) === '[object NodeList]') {
+    // Asume NodeList or HTMLCollection
+    var toStr = Object.prototype.toString;
+    if (toStr.call(el) === '[object NodeList]' || toStr.call(el) === '[object HTMLCollection]') {
       for (var i = 0, len = el.length; i < len; i++) {
-        disposables.add(createEventListener(el.item(i), eventName, handler));
+        disposables.add(createEventListener(el.item(i), eventName, handler, useCapture));
       }
     } else if (el) {
-      disposables.add(createListener(el, eventName, handler));
+      disposables.add(createListener(el, eventName, handler, useCapture));
     }
-
     return disposables;
   }
 
   /**
    * Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
-   *
-   * @example
-   *   var source = Rx.DOM.fromEvent(element, 'mouseup');
-   * 
    * @param {Object} element The DOMElement or NodeList to attach a listener.
    * @param {String} eventName The event name to attach the observable sequence.
-   * @param {Function} [selector] A selector which takes the arguments from the event handler to produce a single item to yield on next.     
+   * @param {Function} [selector] A selector which takes the arguments from the event handler to produce a single item to yield on next.
+   * @param {Boolean} [useCapture] If true, useCapture indicates that the user wishes to initiate capture. After initiating capture, all events of the specified type will be dispatched to the registered listener before being dispatched to any EventTarget beneath it in the DOM tree. Events which are bubbling upward through the tree will not trigger a listener designated to use capture
    * @returns {Observable} An observable sequence of events from the specified element and the specified event.
    */
-  var fromEvent = dom.fromEvent = function (element, eventName, selector) {
-
+  var fromEvent = dom.fromEvent = function (element, eventName, selector, useCapture) {
+    var selectorFn = isFunction(selector) ? selector : null;
+    typeof selector === 'boolean' && (useCapture = selector);
+    typeof useCapture === 'undefined' && (useCapture = false);
     return new AnonymousObservable(function (observer) {
       return createEventListener(
-        element, 
-        eventName, 
-        function handler (e) { 
-          var results = e;
+        element,
+        eventName,
+        function handler () {
+          var results = arguments[0];
 
-          if (selector) {
-            try {
-              results = selector(arguments);
-            } catch (err) {
-              observer.onError(err);
-              return
-            }
+          if (selectorFn) {
+            var results = tryCatch(selectorFn).apply(null, arguments);
+            if (results === errorObj) { return observer.onError(results.e); }
           }
 
-          observer.onNext(results); 
-        });
+          observer.onNext(results);
+        },
+        useCapture);
     }).publish().refCount();
   };
 
@@ -124,8 +121,8 @@
 
     for(var i = 0, len = events.length; i < len; i++) {
       (function (e) {
-        dom[e] = function (element, selector) {
-          return fromEvent(element, e, selector);
+        dom[e] = function (element, selector, useCapture) {
+          return fromEvent(element, e, selector, useCapture);
         };
       }(events[i]))
     }
@@ -387,11 +384,6 @@ function normalizeAjaxLoadEvent(e, xhr, settings) {
 
   /**
    * Creates an observable JSONP Request with the specified settings.
-   *
-   * @example
-   *   source = Rx.DOM.jsonpRequest('http://www.bing.com/?q=foo&JSONPCallback=?');
-   *   source = Rx.DOM.jsonpRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPCallback' });
-   *
    * @param {Object} settings Can be one of the following:
    *
    *  A string of the URL to make the JSONP call with the JSONPCallback=? in the url.
@@ -969,13 +961,8 @@ function normalizeAjaxLoadEvent(e, xhr, settings) {
           subject.onCompleted();
         }
 
-        function errorHandler(e) {
-          subject.onError(e.target.error);
-        }
-
-        function progressHandler(e) {
-          progressObserver.onNext(e);
-        }
+        function errorHandler(e) { subject.onError(e.target.error); }
+        function progressHandler(e) { progressObserver.onNext(e); }
 
         reader.addEventListener('load', loadHandler, false);
         reader.addEventListener('error', errorHandler, false);

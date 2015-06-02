@@ -5,7 +5,7 @@
 [![NuGet](http://img.shields.io/nuget/v/RxJS-Bridges-HTML.svg)](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
-RxJS-DOM <sup>5.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript
+RxJS-DOM <sup>6.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript
 ==========================================================
 ## OVERVIEW
 

@@ -46,7 +46,18 @@
     defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }()),
     dom = Rx.DOM = {},
     hasOwnProperty = {}.hasOwnProperty,
-    noop = Rx.helpers.noop;
+    noop = Rx.helpers.noop,
+    isFunction = Rx.helpers.isFunction;
+
+  function isNodeList(el) {
+    if (window.StaticNodeList) {
+      // IE8 Specific
+      // instanceof is slower than Object#toString, but Object#toString will not work as intended in IE8
+      return (el instanceof root.StaticNodeList || el instanceof root.NodeList);
+    } else {
+      return (Object.prototype.toString.call(el) == '[object NodeList]')
+    }
+  }
 
   function fixEvent(event) {
     var stopPropagation = function () {
@@ -67,7 +78,7 @@
 
     event || (event = root.event);
     if (!event.target) {
-      event.target = event.target || event.srcElement; 
+      event.target = event.target || event.srcElement;
 
       if (event.type == 'mouseover') {
         event.relatedTarget = event.fromElement;
@@ -88,27 +99,27 @@
             c = 0;
             event.keyCode = 13;
           } else if (c == 13 || c == 27) {
-            c = 0; 
+            c = 0;
           } else if (c == 3) {
-            c = 99; 
+            c = 99;
           }
           event.charCode = c;
           event.keyChar = event.charCode ? String.fromCharCode(event.charCode) : '';
           break;
-      }                    
+      }
     }
 
     return event;
   }
 
-  function createListener (element, name, handler) {
+  function createListener (element, name, handler, useCapture) {
     // Standards compliant
     if (element.addEventListener) {
-      element.addEventListener(name, handler, false);
+      element.addEventListener(name, handler, useCapture);
       return disposableCreate(function () {
-        element.removeEventListener(name, handler, false);
+        element.removeEventListener(name, handler, useCapture);
       });
-    } 
+    }
     if (element.attachEvent) {
       // IE Specific
       var innerHandler = function (event) {
@@ -117,9 +128,9 @@
       element.attachEvent('on' + name, innerHandler);
       return disposableCreate(function () {
         element.detachEvent('on' + name, innerHandler);
-      });         
+      });
     }
-    // Level 1 DOM Events      
+    // Level 1 DOM Events
     element['on' + name] = handler;
     return disposableCreate(function () {
       element['on' + name] = null;
@@ -129,8 +140,8 @@
   function createEventListener (el, eventName, handler) {
     var disposables = new CompositeDisposable();
 
-    // Asume NodeList
-    if (Object.prototype.toString.call(el) === '[object NodeList]') {
+    // Asume NodeList or HTMLCollection
+    if (isNodeList(el) || Object.prototype.toString.call(el) === '[object HTMLCollection]') {
       for (var i = 0, len = el.length; i < len; i++) {
         disposables.add(createEventListener(el.item(i), eventName, handler));
       }
@@ -144,36 +155,33 @@
 
   /**
    * Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
-   *
-   * @example
-   *   var source = Rx.DOM.fromEvent(element, 'mouseup');
-   * 
    * @param {Object} element The DOMElement or NodeList to attach a listener.
    * @param {String} eventName The event name to attach the observable sequence.
-   * @param {Function} [selector] A selector which takes the arguments from the event handler to produce a single item to yield on next.     
+   * @param {Function} [selector] A selector which takes the arguments from the event handler to produce a single item to yield on next.
+   * @param {Boolean} [useCapture] If true, useCapture indicates that the user wishes to initiate capture. After initiating capture, all events of the specified type will be dispatched to the registered listener before being dispatched to any EventTarget beneath it in the DOM tree. Events which are bubbling upward through the tree will not trigger a listener designated to use capture
    * @returns {Observable} An observable sequence of events from the specified element and the specified event.
    */
-  var fromEvent = dom.fromEvent = function (element, eventName, selector) {
-    return new AnonymousObservable(function (observer) {
-      return createEventListener(
-        element, 
-        eventName, 
-        function handler (e) { 
-          var results = e;
+   var fromEvent = dom.fromEvent = function (element, eventName, selector, useCapture) {
+     var selectorFn = isFunction(selector) ? selector : null;
+     typeof selector === 'boolean' && (useCapture = selector);
+     typeof useCapture === 'undefined' && (useCapture = false);
+     return new AnonymousObservable(function (observer) {
+       return createEventListener(
+         element,
+         eventName,
+         function handler () {
+           var results = arguments[0];
 
-          if (selector) {
-            try {
-              results = selector(arguments);
-            } catch (err) {
-              observer.onError(err);
-              return
-            }
-          }
+           if (selectorFn) {
+             var results = tryCatch(selectorFn).apply(null, arguments);
+             if (results === errorObj) { return observer.onError(results.e); }
+           }
 
-          observer.onNext(results); 
-        });
-    }).publish().refCount();
-  };
+           observer.onNext(results);
+         },
+         useCapture);
+     }).publish().refCount();
+   };
 
   (function () {
     var events = "blur focus focusin focusout load resize scroll unload click dblclick " +
@@ -192,8 +200,8 @@
 
     for(var i = 0, len = events.length; i < len; i++) {
       (function (e) {
-        dom[e] = function (element, selector) {
-          return fromEvent(element, e, selector);
+        dom[e] = function (element, selector, useCapture) {
+          return fromEvent(element, e, selector, useCapture);
         };
       }(events[i]))
     }
@@ -465,11 +473,6 @@ function normalizeAjaxLoadEvent(e, xhr, settings) {
 
   /**
    * Creates an observable JSONP Request with the specified settings.
-   *
-   * @example
-   *   source = Rx.DOM.jsonpRequest('http://www.bing.com/?q=foo&JSONPCallback=?');
-   *   source = Rx.DOM.jsonpRequest( url: 'http://bing.com/?q=foo', jsonp: 'JSONPCallback' });
-   *
    * @param {Object} settings Can be one of the following:
    *
    *  A string of the URL to make the JSONP call with the JSONPCallback=? in the url.
@@ -1047,13 +1050,8 @@ function normalizeAjaxLoadEvent(e, xhr, settings) {
           subject.onCompleted();
         }
 
-        function errorHandler(e) {
-          subject.onError(e.target.error);
-        }
-
-        function progressHandler(e) {
-          progressObserver.onNext(e);
-        }
+        function errorHandler(e) { subject.onError(e.target.error); }
+        function progressHandler(e) { progressObserver.onNext(e); }
 
         reader.addEventListener('load', loadHandler, false);
         reader.addEventListener('error', errorHandler, false);
