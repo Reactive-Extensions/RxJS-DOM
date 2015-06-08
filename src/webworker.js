@@ -20,7 +20,7 @@
       worker.addEventListener('error', errHandler, false);
 
       return function () {
-        worker.close();
+        worker.terminate();
         worker.removeEventListener('message', messageHandler, false);
         worker.removeEventListener('error', errHandler, false);
       };
