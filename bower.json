@@ -5,6 +5,11 @@
     "dist/rx.dom.js",
     "dist/rx.dom.compat.js"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Reactive-Extensions/RxJS-DOM.git"
+  },
+  "license": "Apache-2.0",
   "dependencies": {
     "rxjs": "*"
   },
