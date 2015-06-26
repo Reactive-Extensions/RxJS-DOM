@@ -37,6 +37,7 @@
     observableProto = Observable.prototype,
     AnonymousObservable = Rx.AnonymousObservable,
     observerCreate = Rx.Observer.create,
+    observableCreate = Rx.Observable.create,
     disposableCreate = Rx.Disposable.create,
     CompositeDisposable = Rx.CompositeDisposable,
     SingleAssignmentDisposable = Rx.SingleAssignmentDisposable,
