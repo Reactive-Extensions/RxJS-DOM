@@ -2,7 +2,7 @@
    * Destroys the current element
    */
   var destroy = (function () {
-    var trash = document.createElement('div');
+    var trash = 'document' in root && root.document.createElement('div');
     return function (element) {
       trash.appendChild(element);
       trash.innerHTML = '';
