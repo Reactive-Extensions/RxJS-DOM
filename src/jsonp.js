@@ -2,7 +2,7 @@
    * Destroys the current element
    */
   var destroy = (function () {
-    var trash = document.createElement('div');
+    var trash = 'document' in root && root.document.createElement('div');
     return function (element) {
       trash.appendChild(element);
       trash.innerHTML = '';
@@ -45,7 +45,7 @@
            }
          }
 
-         var script = document.createElement('script');
+         var script = root.document.createElement('script');
          script.type = 'text/javascript';
          script.async = settings.async;
          script.src = settings.url.replace(settings.jsonp, settings.jsonpCallback);
@@ -83,7 +83,7 @@
 
          script.onload = script.onreadystatechanged = script.onerror = handler;
 
-         var head = document.getElementsByTagName('head')[0] || document.documentElement;
+         var head = root.document.getElementsByTagName('head')[0] || root.document.documentElement;
          head.insertBefore(script, head.firstChild);
 
          return function() {

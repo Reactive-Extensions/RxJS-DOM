@@ -52,7 +52,7 @@
         })
       });
 
-      var element = document.createElement('div');
+      var element = root.document.createElement('div');
       observer.observe(element, { attributes: true });
 
       // Prevent leaks

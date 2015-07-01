@@ -11,17 +11,17 @@
         observer.onCompleted();
       }
 
-      if (document.readyState === 'complete') {
+      if (root.document.readyState === 'complete') {
         setTimeout(handler, 0);
       } else {
         addedHandlers = true;
-        document.addEventListener( 'DOMContentLoaded', handler, false );
+        root.document.addEventListener( 'DOMContentLoaded', handler, false );
         root.addEventListener( 'load', handler, false );
       }
 
       return function () {
         if (!addedHandlers) { return; }
-        document.removeEventListener( 'DOMContentLoaded', handler, false );
+        root.document.removeEventListener( 'DOMContentLoaded', handler, false );
         root.removeEventListener( 'load', handler, false );
       };
     });
