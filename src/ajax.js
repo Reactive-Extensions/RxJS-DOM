@@ -34,7 +34,7 @@
     }
   }
 
-function normalizeAjaxLoadEvent(e, xhr, settings) {
+function normalizeAjaxSuccessEvent(e, xhr, settings) {
     var response = ('response' in xhr) ? xhr.response : xhr.responseText;
     response = settings.responseType === 'json' ? JSON.parse(response) : response;
     return {
@@ -79,10 +79,14 @@ function normalizeAjaxLoadEvent(e, xhr, settings) {
     var settings = {
       method: 'GET',
       crossDomain: false,
-      contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
       async: true,
       headers: {},
-      responseType: 'text'
+      responseType: 'text',
+      createXHR: function(){
+        return this.crossDomain ? getCORSRequest() : getXMLHttpRequest()
+      },
+      normalizeError: normalizeAjaxErrorEvent,
+      normalizeSuccess: normalizeAjaxSuccessEvent
     };
 
     if(typeof options === 'string') {
@@ -95,6 +99,9 @@ function normalizeAjaxLoadEvent(e, xhr, settings) {
       }
     }
 
+    var normalizeError = settings.normalizeError;
+    var normalizeSuccess = settings.normalizeSuccess;
+
     if (!settings.crossDomain && !settings.headers['X-Requested-With']) {
       settings.headers['X-Requested-With'] = 'XMLHttpRequest';
     }
@@ -102,9 +109,21 @@ function normalizeAjaxLoadEvent(e, xhr, settings) {
 
     return new AnonymousObservable(function (observer) {
       var isDone = false;
+      var xhr;
+
+      var processResponse = function(xhr, e){
+        var status = xhr.status == 1223 ? 204 : xhr.status;
+        if ((status >= 200 && status <= 300) || status === 0 || status === '') {
+          observer.onNext(normalizeSuccess(e, xhr, settings));
+          observer.onCompleted();
+        } else {
+          observer.onError(normalizeError(e, xhr, 'error'));
+        }
+        isDone = true;
+      }
 
       try {
-        var xhr = settings.crossDomain ? getCORSRequest() : getXMLHttpRequest();
+        xhr = settings.createXHR();;
       } catch (err) {
         observer.onError(err);
       }
@@ -129,9 +148,7 @@ function normalizeAjaxLoadEvent(e, xhr, settings) {
               settings.progressObserver.onNext(e);
               settings.progressObserver.onCompleted();
             }
-            observer.onNext(normalizeAjaxLoadEvent(e, xhr, settings));
-            observer.onCompleted();
-            isDone = true;
+            processResponse(xhr, e);
           };
 
           if(settings.progressObserver) {
@@ -142,27 +159,20 @@ function normalizeAjaxLoadEvent(e, xhr, settings) {
 
           xhr.onerror = function(e) {
             settings.progressObserver && settings.progressObserver.onError(e);
-            observer.onError(normalizeAjaxErrorEvent(e, xhr, 'error'));
+            observer.onError(normalizeError(e, xhr, 'error'));
             isDone = true;
           };
 
           xhr.onabort = function(e) {
             settings.progressObserver && settings.progressObserver.onError(e);
-            observer.onError(normalizeAjaxErrorEvent(e, xhr, 'abort'));
+            observer.onError(normalizeError(e, xhr, 'abort'));
             isDone = true;
           };
         } else {
 
           xhr.onreadystatechange = function (e) {
             if (xhr.readyState === 4) {
-              var status = xhr.status == 1223 ? 204 : xhr.status;
-              if ((status >= 200 && status <= 300) || status === 0 || status === '') {
-                observer.onNext(normalizeAjaxLoadEvent(e, xhr, settings));
-                observer.onCompleted();
-              } else {
-                observer.onError(normalizeAjaxErrorEvent(e, xhr, 'error'));
-              }
-              isDone = true;
+              processResponse(xhr, e);
             }
           };
         }
