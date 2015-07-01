@@ -14,7 +14,159 @@ module('Ajax Tests', {
   }
 });
 
+test('XHR2 happy path', function(){
+  expect(1);
 
+  var mockXhr = {
+    status: 200,
+    upload: true,
+    trigger: function(name, e) {
+      if(this['on'+name]) {
+        this['on'+name](e);
+      }
+    },
+    open: function(){},
+    send: function(){},
+    abort: function(){},
+    setRequestHeader: function(){}
+  };
+
+  var source = Rx.DOM.ajax({
+    url: '/flibbertyJibbet',
+    upload: true,
+    createXHR: function(){
+      return mockXhr;
+    },
+    normalizeSuccess: function(e, xhr, settings) {
+      return e;
+    }
+  });
+
+  var expected = { foo: 'bar' };
+
+  source.subscribe(function(x) {
+    deepEqual(x, expected);
+  });
+
+  mockXhr.trigger('load', expected);
+});
+
+
+test('XHR2 sad path', function(){
+  expect(1);
+
+  var mockXhr = {
+    status: 404,
+    upload: true,
+    trigger: function(name, e) {
+      if(this['on'+name]) {
+        this['on'+name](e);
+      }
+    },
+    open: function(){},
+    send: function(){},
+    abort: function(){},
+    setRequestHeader: function(){}
+  };
+
+
+  var source = Rx.DOM.ajax({
+    url: '/flibbertyJibbet',
+    createXHR: function(){
+      return mockXhr;
+    },
+    normalizeError: function(e, xhr, settings) {
+      return e;
+    }
+  });
+
+  var expected = { foo: 'bar' };
+
+  source.subscribe(function(x) {
+    ok(false); // shouldn't be called
+  }, function(err) {
+    equal(err, expected);
+  });
+
+  mockXhr.trigger('load', expected);
+});
+
+test('XHR1 happy path', function(){
+  expect(1);
+
+  var mockXhr = {
+    status: 200,
+    readyState: 4,
+    trigger: function(name, e) {
+      if(this['on'+name]) {
+        this['on'+name](e);
+      }
+    },
+    open: function(){},
+    send: function(){},
+    abort: function(){},
+    setRequestHeader: function(){}
+  };
+
+  var source = Rx.DOM.ajax({
+    url: '/flibbertyJibbet',
+    upload: true,
+    createXHR: function(){
+      return mockXhr;
+    },
+    normalizeSuccess: function(e, xhr, settings) {
+      return e;
+    }
+  });
+
+  var expected = { foo: 'bar' };
+
+  source.subscribe(function(x) {
+    deepEqual(x, expected);
+  });
+
+  mockXhr.trigger('readystatechange', expected);
+});
+
+
+test('XHR1 sad path', function(){
+  expect(1);
+
+  var mockXhr = {
+    status: 404,
+    readyState: 4,
+    trigger: function(name, e) {
+      if(this['on'+name]) {
+        this['on'+name](e);
+      }
+    },
+    open: function(){},
+    send: function(){},
+    abort: function(){},
+    setRequestHeader: function(){}
+  };
+
+  var source = Rx.DOM.ajax({
+    url: '/flibbertyJibbet',
+    upload: true,
+    createXHR: function(){
+      return mockXhr;
+    },
+    normalizeError: function(e) {
+      return e;
+    }
+  });
+
+  var expected = { foo: 'bar' };
+
+  source.subscribe(function(x) {
+    ok(false); // should not be called
+  }, function(err) {
+    equal(err, expected);
+  });
+
+  mockXhr.trigger('readystatechange', expected);
+});
 
 test('ajax success no settings', function () {
   var source = Rx.DOM.ajax('/products');
