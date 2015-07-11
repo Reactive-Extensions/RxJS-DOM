@@ -11,10 +11,10 @@ Creates an observable sequence from an Ajax GET Request with the body.  This is 
 
 #### Example
 ```js
-Rx.DOM.Request.get('/products')
+Rx.DOM.get('/products')
   .subscribe(
     function (xhr) {
-      var text = xhr.responseText;
+      var text = xhr.response;
       console.log(text);
     },
     function (err) {
