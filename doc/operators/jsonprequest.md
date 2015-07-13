@@ -1,4 +1,4 @@
-### `Rx.DOM.Request.jsonpRequest(url | settings)`
+### `Rx.DOM.jsonpRequest(url | settings)`
 [&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/jsonp.js "View in source")
 
 Creates an observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
