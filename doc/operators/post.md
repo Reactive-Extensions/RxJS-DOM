@@ -12,10 +12,10 @@ Creates an observable sequence from an Ajax POST Request with the body.  This is
 
 #### Example
 ```js
-Rx.DOM.Request.post('/test', { text: 'sometext' })
+Rx.DOM.post('/test', { text: 'sometext' })
   .subscribe(
     function (xhr) {
-      console.log(xhr.responseText);
+      console.log(xhr.response);
     },
     function (err) {
       // Log the error
