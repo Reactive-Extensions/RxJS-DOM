@@ -14,8 +14,8 @@ Creates an observable sequence from an Ajax POST Request with the body.  This is
 ```js
 Rx.DOM.post('/test', { text: 'sometext' })
   .subscribe(
-    function (xhr) {
-      console.log(xhr.response);
+    function (data) {
+      console.log(data.response);
     },
     function (err) {
       // Log the error
