@@ -1,4 +1,4 @@
-### `Rx.DOM.from(url, [openObserver])`
+### `Rx.DOM.fromEventSource(url, [openObserver])`
 [&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/eventsource.js "View in source") 
 
 This method wraps an EventSource as an observable sequence which is used to send server-side events.  Note that your browser must support EventSource objects.
