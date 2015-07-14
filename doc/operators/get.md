@@ -13,8 +13,8 @@ Creates an observable sequence from an Ajax GET Request with the body.  This is 
 ```js
 Rx.DOM.get('/products')
   .subscribe(
-    function (xhr) {
-      var text = xhr.response;
+    function (data) {
+      var text = data.response;
       console.log(text);
     },
     function (err) {
