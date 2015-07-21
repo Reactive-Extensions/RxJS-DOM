@@ -1,7 +1,7 @@
-### `Rx.DOM.mouseup(element, [selector], [useCapture])`
+### `Rx.DOM.mouseout(element, [selector], [useCapture])`
 [&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events.js "View in source")
 
-Creates an observable sequence by adding an event listener to the matching DOMElement or DOMNodeList for the `mouseup` event.
+Creates an observable sequence by adding an event listener to the matching DOMElement or DOMNodeList for the `mouseout` event.
 
 #### Arguments
 1. `element` *(`Any`)*: The DOMElement, DOMNodeList to attach a listener.
@@ -9,14 +9,14 @@ Creates an observable sequence by adding an event listener to the matching DOMEl
 3. `[useCapture]` *(`Boolean`)*: If `true`, `useCapture` indicates that the user wishes to initiate capture. After initiating capture, all events of the specified type will be dispatched to the registered listener before being dispatched to any `EventTarget` beneath it in the DOM tree. Events which are bubbling upward through the tree will not trigger a listener designated to use capture.
 
 #### Returns
-*(`Observable`)*: An observable sequence of events from the specified element and the `mouseup` event.
+*(`Observable`)*: An observable sequence of events from the specified element and the `mouseout` event.
 
 #### Example
 
 ```js
 var input = document.getElementById('input');
 
-var source = Rx.DOM.mouseup(input);
+var source = Rx.DOM.mouseout(input);
 
 var subscription = source.subscribe(
     function (x) {
