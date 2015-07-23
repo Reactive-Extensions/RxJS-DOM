@@ -18,7 +18,8 @@ var obs = Rx.DOM.fromMutationObserver(foo, {
   attributes: true, 
   childList: true, 
   characterData: true,
-  attributeFilter: ["id", "dir"]
+  attributeFilter: ["id", "dir"],
+  attributeOldValue: true
 });
 
 foo.dir = 'rtl';
@@ -29,7 +30,7 @@ obs.subscribe(function (mutations) {
     console.log("Type of mutation: " + mutation.type);
 
     if ("attributes" === mutation.type) {
-      console.log("Old attribute value: " + mutationRecord.oldValue);
+      console.log("Old attribute value: " + mutation.oldValue);
     }
   });
 });
