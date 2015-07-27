@@ -15,7 +15,7 @@ Creates a WebSocket Subject with a given URL, protocol and an optional observer 
 #### Example
 ```js
 // an observer for when the socket is open
-var openObserver = Observer.create(function(e) {
+var openObserver = Rx.Observer.create(function(e) {
   console.info('socket open');
 
   // Now it is safe to send a message
@@ -23,7 +23,7 @@ var openObserver = Observer.create(function(e) {
 });
 
 // an observer for when the socket is about to close
-var closingObserver = Observer.create(function() {
+var closingObserver = Rx.Observer.create(function() {
   console.log('socket is about to close');
 });
 
