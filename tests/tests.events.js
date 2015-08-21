@@ -90,10 +90,10 @@ test('Event_4', function () {
     var element = new FakeDOMStandardElement('foo');
 
     var d = Observable.fromEvent(
-            element, 
+            element,
             'someEvent',
-            function (arr) {
-                return { foo: arr[0], bar: arr[1] };
+            function (baz, quux) {
+                return { foo: baz, bar: quux };
             }
         )
         .subscribe(function (x) {
