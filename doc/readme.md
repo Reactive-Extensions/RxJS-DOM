@@ -22,6 +22,7 @@ This section contains the reference documentation for the Reactive Extensions fo
 - [`Rx.DOM.focus`](operators/focus.md)
 - [`Rx.DOM.focusin`](operators/focusin.md)
 - [`Rx.DOM.focusout`](operators/focusout.md)
+- [`Rx.DOM.input`](operators/input.md)
 - [`Rx.DOM.keydown`](operators/keydown.md)
 - [`Rx.DOM.keypress`](operators/keypress.md)
 - [`Rx.DOM.keyup`](operators/keyup.md)
