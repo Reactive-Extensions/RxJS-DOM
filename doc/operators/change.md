@@ -1,4 +1,4 @@
-### `Rx.DOM.change(element, [selector])`
+### `Rx.DOM.change(element, [selector], [useCapture])`
 [&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events.js "View in source")
 
 Creates an observable sequence by adding an event listener to the matching DOMElement or DOMNodeList for the `change` event.
