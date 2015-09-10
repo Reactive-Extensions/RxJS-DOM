@@ -9,7 +9,6 @@ Creates an observable for an Ajax request with either a settings object with url
 
     - `async` *(Boolean)*: Whether the request is async. The default is `true`.
     - `body` *(Object)*: Optional body
-    - `contentType` *(String)*: The Content-Type for the request. Default is 'application/x-www-form-urlencoded; charset=UTF-8'.
     - `crossDomain` *(Boolean)*: true if to use CORS, else false. The default is `false`.
     - `headers` *(Object)*: Optional headers
     - `method` *(String)*: Method of the request, such as GET, POST, PUT, PATCH, DELETE. The default is GET.
