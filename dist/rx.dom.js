@@ -1,30 +1,28 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+// Copyright (c) Microsoft, Inc. All rights reserved. See License.txt in the project root for license information.
 
 ;(function (factory) {
   var objectTypes = {
-    'boolean': false,
     'function': true,
-    'object': true,
-    'number': false,
-    'string': false,
-    'undefined': false
+    'object': true
   };
 
-  var root = (objectTypes[typeof window] && window) || this,
-    freeExports = objectTypes[typeof exports] && exports && !exports.nodeType && exports,
-    freeModule = objectTypes[typeof module] && module && !module.nodeType && module,
-    moduleExports = freeModule && freeModule.exports === freeExports && freeExports,
-    freeGlobal = objectTypes[typeof global] && global;
-
-  if (freeGlobal && (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal)) {
-    root = freeGlobal;
+  function checkGlobal(value) {
+    return (value && value.Object === Object) ? value : null;
   }
+
+  var freeExports = (objectTypes[typeof exports] && exports && !exports.nodeType) ? exports : null;
+  var freeModule = (objectTypes[typeof module] && module && !module.nodeType) ? module : null;
+  var freeGlobal = checkGlobal(freeExports && freeModule && typeof global === 'object' && global);
+  var freeSelf = checkGlobal(objectTypes[typeof self] && self);
+  var freeWindow = checkGlobal(objectTypes[typeof window] && window);
+  var moduleExports = (freeModule && freeModule.exports === freeExports) ? freeExports : null;
+  var thisGlobal = checkGlobal(objectTypes[typeof this] && this);
+  var root = freeGlobal || ((freeWindow !== (thisGlobal && thisGlobal.window)) && freeWindow) || freeSelf || thisGlobal || Function('return this')();
 
   // Because of build optimizers
   if (typeof define === 'function' && define.amd) {
-    define(['rx', 'exports'], function (Rx, exports) {
-      root.Rx = factory(root, exports, Rx);
-      return root.Rx;
+    define(['rx'], function (Rx, exports) {
+      return factory(root, exports, Rx);
     });
   } else if (typeof module === 'object' && module && module.exports === freeExports) {
     module.exports = factory(root, module.exports, require('rx'));
@@ -34,28 +32,44 @@
 }.call(this, function (root, exp, Rx, undefined) {
 
   var Observable = Rx.Observable,
+    ObservableBase = Rx.ObservableBase,
     observableProto = Observable.prototype,
     AnonymousObservable = Rx.AnonymousObservable,
+    AbstractObserver = Rx.internals.AbstractObserver,
     observerCreate = Rx.Observer.create,
     observableCreate = Rx.Observable.create,
     disposableCreate = Rx.Disposable.create,
+    Disposable = Rx.Disposable,
     CompositeDisposable = Rx.CompositeDisposable,
+    BinaryDisposable = Rx.BinaryDisposable,
     SingleAssignmentDisposable = Rx.SingleAssignmentDisposable,
-    AsyncSubject = Rx.AsyncSubject,
     Subject = Rx.Subject,
     Scheduler = Rx.Scheduler,
-    defaultNow = (function () { return !!Date.now ? Date.now : function () { return +new Date; }; }()),
     dom = Rx.DOM = {},
     hasOwnProperty = {}.hasOwnProperty,
     noop = Rx.helpers.noop,
-    isFunction = Rx.helpers.isFunction;
+    isFunction = Rx.helpers.isFunction,
+    inherits = Rx.internals.inherits;
+
+  function CreateListenerDisposable(element, name, handler, useCapture) {
+    this._e = element;
+    this._n = name;
+    this._fn = handler;
+    this._u = useCapture;
+    this._e.addEventListener(this._n, this._fn, this._u);
+    this.isDisposed = false;
+  }
+
+  CreateListenerDisposable.prototype.dispose = function () {
+    if (!this.isDisposed) {
+      this.isDisposed = true;
+      this._e.removeEventListener(this._n, this._fn, this._u);
+    }
+  };
 
   function createListener (element, name, handler, useCapture) {
     if (element.addEventListener) {
-      element.addEventListener(name, handler, useCapture);
-      return disposableCreate(function () {
-        element.removeEventListener(name, handler, useCapture);
-      });
+      return new CreateListenerDisposable(element, name, handler, useCapture);
     }
     throw new Error('No listener found');
   }
@@ -75,6 +89,38 @@
     return disposables;
   }
 
+  var FromEventObservable = (function(__super__) {
+    inherits(FromEventObservable, __super__);
+    function FromEventObservable(element, eventName, selector, useCapture) {
+      this._e = element;
+      this._n = eventName;
+      this._fn = selector;
+      this._uc = useCapture;
+      __super__.call(this);
+    }
+
+    function createHandler(o, fn) {
+      return function handler() {
+        var results = arguments[0];
+        if (fn) {
+          var results = tryCatch(fn).apply(null, arguments);
+          if (results === errorObj) { return o.onError(results.e); }
+        }
+        o.onNext(results);
+      };
+    }
+
+    FromEventObservable.prototype.subscribeCore = function (o) {
+      return createEventListener(
+        this._e,
+        this._n,
+        createHandler(o, this._fn),
+        this._uc);
+    };
+
+    return FromEventObservable;
+  }(ObservableBase));
+
   /**
    * Creates an observable sequence by adding an event listener to the matching DOMElement or each item in the NodeList.
    * @param {Object} element The DOMElement or NodeList to attach a listener.
@@ -87,35 +133,20 @@
     var selectorFn = isFunction(selector) ? selector : null;
     typeof selector === 'boolean' && (useCapture = selector);
     typeof useCapture === 'undefined' && (useCapture = false);
-    return new AnonymousObservable(function (observer) {
-      return createEventListener(
-        element,
-        eventName,
-        function handler () {
-          var results = arguments[0];
-
-          if (selectorFn) {
-            var results = tryCatch(selectorFn).apply(null, arguments);
-            if (results === errorObj) { return observer.onError(results.e); }
-          }
-
-          observer.onNext(results);
-        },
-        useCapture);
-    }).publish().refCount();
+    return new FromEventObservable(element, eventName, selectorFn, useCapture).publish().refCount();
   };
 
   (function () {
-    var events = "blur focus focusin focusout load resize scroll unload click dblclick " +
-      "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
-      "change select submit keydown keypress keyup error contextmenu input";
+    var events = 'blur focus focusin focusout load resize scroll unload click dblclick ' +
+      'mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave ' +
+      'change select submit keydown keypress keyup error contextmenu input';
 
     if (root.PointerEvent) {
-      events += " pointerdown pointerup pointermove pointerover pointerout pointerenter pointerleave";
+      events += ' pointerdown pointerup pointermove pointerover pointerout pointerenter pointerleave';
     }
 
     if (root.TouchEvent) {
-      events += " touchstart touchend touchmove touchcancel";
+      events += ' touchstart touchend touchmove touchcancel';
     }
 
     events = events.split(' ');
@@ -129,33 +160,53 @@
     }
   }());
 
+  var ReadyObservable = (function (__super__) {
+    inherits(ReadyObservable, __super__);
+    function ReadyObservable() {
+      __super__.call(this);
+    }
+
+    function createHandler(o) {
+      return function handler() {
+        o.onNext();
+        o.onCompleted();
+      };
+    }
+
+    ReadyObservable.prototype.subscribeCore = function (o) {
+      return new ReadyDisposable(o, createHandler(o));
+    };
+
+    function ReadyDisposable(o, fn) {
+      this._o = o;
+      this._fn = fn;
+      this._addedHandlers = false;
+      this.isDisposed = false;
+
+      if (root.document.readyState === 'complete') {
+        setTimeout(this._fn, 0);
+      } else {
+        this._addedHandlers = true;
+        root.document.addEventListener( 'DOMContentLoaded', this._fn, false );
+      }
+    }
+
+    ReadyDisposable.prototype.dispose = function () {
+      if (!this.isDisposed) {
+        this.isDisposed = true;
+        root.document.removeEventListener( 'DOMContentLoaded', this._fn, false );
+      }
+    };
+
+    return ReadyObservable;
+  }(ObservableBase));
+
   /**
    * Creates an observable sequence when the DOM is loaded
    * @returns {Observable} An observable sequence fired when the DOM is loaded
    */
   dom.ready = function () {
-    return new AnonymousObservable(function (observer) {
-      var addedHandlers = false;
-
-      function handler () {
-        observer.onNext();
-        observer.onCompleted();
-      }
-
-      if (root.document.readyState === 'complete') {
-        setTimeout(handler, 0);
-      } else {
-        addedHandlers = true;
-        root.document.addEventListener( 'DOMContentLoaded', handler, false );
-        root.addEventListener( 'load', handler, false );
-      }
-
-      return function () {
-        if (!addedHandlers) { return; }
-        root.document.removeEventListener( 'DOMContentLoaded', handler, false );
-        root.removeEventListener( 'load', handler, false );
-      };
-    });
+    return new ReadyObservable();
   };
 
 
@@ -194,7 +245,7 @@
     }
   }
 
-function normalizeAjaxSuccessEvent(e, xhr, settings) {
+  function normalizeAjaxSuccessEvent(e, xhr, settings) {
     var response = ('response' in xhr) ? xhr.response : xhr.responseText;
     response = settings.responseType === 'json' ? JSON.parse(response) : response;
     return {
@@ -214,6 +265,36 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
       originalEvent: e
     };
   }
+
+  var AjaxObservable = (function(__super__) {
+    inherits(AjaxObservable, __super__);
+    function AjaxObservable(settings) {
+      this._settings = settings;
+      __super__.call(this);
+    }
+
+    AjaxObservable.prototype.subscribeCore = function (o) {
+      var xhr;
+      this._isDone = false;
+
+
+    };
+
+    function AjaxDisposable(xhr, parent) {
+      this._xhr = xhr;
+      this._parent = parent;
+      this.isDisposed = false;
+    }
+
+    AjaxDisposable.prototype.dispose = function () {
+      if (!this.isDisposed) {
+        this.isDisposed = true;
+        if (!this._parent._isDone && this._xhr.readyState !== 4) { this._xhr.abort(); }
+      }
+    };
+
+    return AjaxObservable;
+  }(ObservableBase));
 
   /**
    * Creates an observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
@@ -267,25 +348,25 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
     }
     settings.hasContent = settings.body !== undefined;
 
-    return new AnonymousObservable(function (observer) {
+    return new AnonymousObservable(function (o) {
       var isDone = false;
       var xhr;
 
       var processResponse = function(xhr, e){
-        var status = xhr.status == 1223 ? 204 : xhr.status;
+        var status = xhr.status === 1223 ? 204 : xhr.status;
         if ((status >= 200 && status <= 300) || status === 0 || status === '') {
-          observer.onNext(normalizeSuccess(e, xhr, settings));
-          observer.onCompleted();
+          o.onNext(normalizeSuccess(e, xhr, settings));
+          o.onCompleted();
         } else {
-          observer.onError(normalizeError(e, xhr, 'error'));
+          o.onError(normalizeError(e, xhr, 'error'));
         }
         isDone = true;
-      }
+      };
 
       try {
-        xhr = settings.createXHR();;
+        xhr = settings.createXHR();
       } catch (err) {
-        observer.onError(err);
+        return o.onError(err);
       }
 
       try {
@@ -319,27 +400,24 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
 
           xhr.onerror = function(e) {
             settings.progressObserver && settings.progressObserver.onError(e);
-            observer.onError(normalizeError(e, xhr, 'error'));
+            o.onError(normalizeError(e, xhr, 'error'));
             isDone = true;
           };
 
           xhr.onabort = function(e) {
             settings.progressObserver && settings.progressObserver.onError(e);
-            observer.onError(normalizeError(e, xhr, 'abort'));
+            o.onError(normalizeError(e, xhr, 'abort'));
             isDone = true;
           };
         } else {
-
           xhr.onreadystatechange = function (e) {
-            if (xhr.readyState === 4) {
-              processResponse(xhr, e);
-            }
+            xhr.readyState === 4 && processResponse(xhr, e);
           };
         }
 
         xhr.send(settings.hasContent && settings.body || null);
       } catch (e) {
-        observer.onError(e);
+        o.onError(e);
       }
 
       return function () {
@@ -365,7 +443,7 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
    * @param {String} url The URL to GET
    * @returns {Observable} The observable sequence which contains the response from the Ajax GET.
    */
-  var observableGet = dom.get = function (url) {
+  dom.get = function (url) {
     return ajaxRequest({ url: url });
   };
 
@@ -479,6 +557,112 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
      }
    }());
 
+  function socketClose(socket, closingObserver, code, reason) {
+    if (socket) {
+      if (closingObserver) {
+        closingObserver.onNext();
+        closingObserver.onCompleted();
+      }
+      if (!code) {
+        socket.close();
+      } else {
+        socket.close(code, reason);
+      }
+    }
+  }
+
+  var SocketObservable = (function (__super__) {
+    inherits(SocketObservable, __super__);
+    function SocketObservable(state, url, protocol, open, close) {
+      this._state = state;
+      this._url = url;
+      this._protocol = protocol;
+      this._open = open;
+      this._close = close;
+      __super__.call(this);
+    }
+
+    function createOpenHandler(open, socket) {
+      return function openHandler(e) {
+        open.onNext(e);
+        open.onCompleted();
+        socket.removeEventListener('open', openHandler, false);
+      };
+    }
+    function createMsgHandler(o) { return function msgHandler(e) { o.onNext(e); }; }
+    function createErrHandler(o) { return function errHandler(e) { o.onError(e); }; }
+    function createCloseHandler(o) {
+      return function closeHandler(e) {
+        if (e.code !== 1000 || !e.wasClean) { return o.onError(e); }
+        o.onCompleted();
+      };
+    }
+
+    function SocketDisposable(socket, msgFn, errFn, closeFn, close) {
+      this._socket = socket;
+      this._msgFn = msgFn;
+      this._errFn = errFn;
+      this._closeFn = closeFn;
+      this._close = close;
+      this.isDisposed = false;
+    }
+
+    SocketDisposable.prototype.dispose = function () {
+      if (!this.isDisposed) {
+        this.isDisposed = true;
+        socketClose(this._socket, this._close);
+
+        this._socket.removeEventListener('message', this._msgFn, false);
+        this._socket.removeEventListener('error', this._errFn, false);
+        this._socket.removeEventListener('close', this._closeFn, false);
+      }
+    };
+
+    SocketObservable.prototype.subscribeCore = function (o) {
+      this._state.socket = this._protocol ? new WebSocket(this._url, this._protocol) : new WebSocket(this._url);
+
+      var openHandler = createOpenHandler(this._open, this._state.socket);
+      var msgHandler = createMsgHandler(o);
+      var errHandler = createErrHandler(o);
+      var closeHandler = createCloseHandler(o);
+
+      this._open && this._state.socket.addEventListener('open', openHandler, false);
+      this._state.socket.addEventListener('message', msgHandler, false);
+      this._state.socket.addEventListener('error', errHandler, false);
+      this._state.socket.addEventListener('close', closeHandler, false);
+
+      return new SocketDisposable(this._state.socket, msgHandler, errHandler, closeHandler, this._close);
+    };
+
+    return SocketObservable;
+  }(ObservableBase));
+
+  var SocketObserver = (function (__super__) {
+    inherits(SocketObserver, __super__);
+    function SocketObserver(state, close) {
+      this._state = state;
+      this._close = close;
+      __super__.call(this);
+    }
+
+    SocketObserver.prototype.next = function (x) {
+      this._state.socket && this._state.socket.readyState === WebSocket.OPEN && this._state.socket.send(x);
+    };
+
+    SocketObserver.prototype.error = function (e) {
+      if (!e.code) {
+        throw new Error('no code specified. be sure to pass { code: ###, reason: "" } to onError()');
+      }
+      socketClose(this._state.socket, this._close, e.code, e.reason || '');
+    };
+
+    SocketObserver.prototype.completed = function () {
+      socketClose(this._state.socket, this._close, 1000, '');
+    };
+
+    return SocketObserver;
+  }(AbstractObserver));
+
    /**
    * Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
    *
@@ -493,69 +677,62 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
    */
   dom.fromWebSocket = function (url, protocol, openObserver, closingObserver) {
     if (!WebSocket) { throw new TypeError('WebSocket not implemented in your runtime.'); }
+    var state = { socket: null };
+    return Subject.create(
+      new SocketObserver(state, closingObserver),
+      new SocketObservable(state, url, protocol, openObserver, closingObserver)
+    );
+  };
 
-    var socket;
-
-    function socketClose(code, reason) {
-      if (socket) {
-        if (closingObserver) {
-          closingObserver.onNext();
-          closingObserver.onCompleted();
-        }
-        if (!code) {
-          socket.close();
-        } else {
-          socket.close(code, reason);
-        }
-      }
+  var WorkerObserver = (function (__super__) {
+    inherits(WorkerObserver, __super__);
+    function WorkerObserver(worker) {
+      this._worker = worker;
+      __super__.call(this);
     }
 
-    var observable = new AnonymousObservable(function (obs) {
-      socket = protocol ? new WebSocket(url, protocol) : new WebSocket(url);
+    WorkerObserver.prototype.next = function (x) { this._worker.postMessage(x); };
+    WorkerObserver.prototype.error = function (e) { throw e; };
+    WorkerObserver.prototype.completed = function () { };
 
-      function openHandler(e) {
-        openObserver.onNext(e);
-        openObserver.onCompleted();
-        socket.removeEventListener('open', openHandler, false);
-      }
-      function messageHandler(e) { obs.onNext(e); }
-      function errHandler(e) { obs.onError(e); }
-      function closeHandler(e) {
-        if (e.code !== 1000 || !e.wasClean) { return obs.onError(e); }
-        obs.onCompleted();
-      }
+    return WorkerObserver;
+  }(AbstractObserver));
 
-      openObserver && socket.addEventListener('open', openHandler, false);
-      socket.addEventListener('message', messageHandler, false);
-      socket.addEventListener('error', errHandler, false);
-      socket.addEventListener('close', closeHandler, false);
+  var WorkerObservable = (function (__super__) {
+    inherits(WorkerObservable, __super__);
+    function WorkerObservable(worker) {
+      this._worker = worker;
+      __super__.call(this);
+    }
 
-      return function () {
-        socketClose();
+    function createMessageHandler(o) { return function messageHandler (e) { o.onNext(e); }; }
+    function createErrHandler(o) { return function errHandler(e) { o.onError(e); }; }
 
-        socket.removeEventListener('message', messageHandler, false);
-        socket.removeEventListener('error', errHandler, false);
-        socket.removeEventListener('close', closeHandler, false);
-      };
-    });
+    function WorkerDisposable(w, msgFn, errFn) {
+      this._w = w;
+      this._msgFn = msgFn;
+      this._errFn = errFn;
+      this.isDisposed = false;
+    }
 
-    var observer = observerCreate(
-      function (data) {
-        socket && socket.readyState === WebSocket.OPEN && socket.send(data);
-      },
-      function(e) {
-        if (!e.code) {
-          throw new Error('no code specified. be sure to pass { code: ###, reason: "" } to onError()');
-        }
-        socketClose(e.code, e.reason || '');
-      },
-      function() {
-        socketClose(1000, '');
-      }
-    );
+    WorkerDisposable.prototype.dispose = function () {
+      this._w.terminate();
+      this._w.removeEventListener('message', this._msgFn, false);
+      this._w.removeEventListener('error', this._errFn, false);
+    };
 
-    return Subject.create(observer, observable);
-  };
+    WorkerObservable.prototype.subscribeCore = function (o) {
+      var messageHandler = createMessageHandler(o);
+      var errHandler = createErrHandler(o);
+
+      this._worker.addEventListener('message', messageHandler, false);
+      this._worker.addEventListener('error', errHandler, false);
+
+      return new WorkerDisposable(this._worker, messageHandler, errHandler);
+    };
+
+    return WorkerObservable;
+  }(ObservableBase));
 
   /**
    * Creates a Web Worker with a given URL as a Subject.
@@ -569,69 +746,39 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
   dom.fromWebWorker = function (url) {
     if (!root.Worker) { throw new TypeError('Worker not implemented in your runtime.'); }
     var worker = new root.Worker(url);
-
-    var observable = new AnonymousObservable(function (obs) {
-
-      function messageHandler(data) { obs.onNext(data); }
-      function errHandler(err) { obs.onError(err); }
-
-      worker.addEventListener('message', messageHandler, false);
-      worker.addEventListener('error', errHandler, false);
-
-      return function () {
-        worker.terminate();
-        worker.removeEventListener('message', messageHandler, false);
-        worker.removeEventListener('error', errHandler, false);
-      };
-    });
-
-    var observer = observerCreate(function (data) {
-      worker.postMessage(data);
-    });
-
-    return Subject.create(observer, observable);
+    return Subject.create(new WorkerObserver(worker), new WorkerObservable(worker));
   };
 
-  /**
-   * This method wraps an EventSource as an observable sequence.
-   * @param {String} url The url of the server-side script.
-   * @param {Observer} [openObserver] An optional observer for the 'open' event for the server side event.
-   * @returns {Observable} An observable sequence which represents the data from a server-side event.
-   */
-  dom.fromEventSource = function (url, openObserver) {
-    if (!root.EventSource) { throw new TypeError('EventSource not implemented in your runtime.'); }
-    return new AnonymousObservable(function (observer) {
-      var source = new root.EventSource(url);
+  var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
 
-      function onOpen(e) {
-        openObserver.onNext(e);
-        openObserver.onCompleted();
-        source.removeEventListener('open', onOpen, false);
+  var MutationObserverObservable = (function (__super__) {
+    inherits(MutationObserverObservable, __super__);
+    function MutationObserverObservable(target, options) {
+      this._target = target;
+      this._options = options;
+      __super__.call(this);
+    }
+
+    function InnerDisposable(mutationObserver) {
+      this._m = mutationObserver;
+      this.isDisposed = false;
+    }
+
+    InnerDisposable.prototype.dispose = function () {
+      if (!this.isDisposed) {
+        this.isDisposed = true;
+        this._m.disconnect();
       }
+    };
 
-      function onError(e) {
-        if (e.readyState === EventSource.CLOSED) {
-          observer.onCompleted();
-        } else {
-          observer.onError(e);
-        }
-      }
+    MutationObserverObservable.prototype.subscribeCore = function (o) {
+      var mutationObserver = new BrowserMutationObserver(function (e) { o.onNext(e); });
+      mutationObserver.observe(this._target, this._options);
+      return new InnerDisposable(mutationObserver);
+    };
 
-      function onMessage(e) {
-        observer.onNext(e);
-      }
-
-      openObserver && source.addEventListener('open', onOpen, false);
-      source.addEventListener('error', onError, false);
-      source.addEventListener('message', onMessage, false);
-
-      return function () {
-        source.removeEventListener('error', onError, false);
-        source.removeEventListener('message', onMessage, false);
-        source.close();
-      };
-    });
-  };
+    return MutationObserverObservable;
+  }(ObservableBase));
 
   /**
    * Creates an observable sequence from a Mutation Observer.
@@ -644,17 +791,271 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
    * @returns {Observable} An observable sequence which contains mutations on the given DOM target.
    */
   dom.fromMutationObserver = function (target, options) {
-    var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
     if (!BrowserMutationObserver) { throw new TypeError('MutationObserver not implemented in your runtime.'); }
-    return observableCreate(function (observer) {
-      var mutationObserver = new BrowserMutationObserver(observer.onNext.bind(observer));
-      mutationObserver.observe(target, options);
-
-      return mutationObserver.disconnect.bind(mutationObserver);
-    });
+    return new MutationObserverObservable(target, options);
   };
 
-  // Get the right animation frame method
+  var CurrentPositionObservable = (function (__super__) {
+    inherits(CurrentPositionObservable, __super__);
+    function CurrentPositionObservable(opts) {
+      this._opts = opts;
+      __super__.call(this);
+    }
+
+    CurrentPositionObservable.prototype.subscribeCore = function (o) {
+      root.navigator.geolocation.getCurrentPosition(
+        function (data) {
+          o.onNext(data);
+          o.onCompleted();
+        },
+        function (e) { o.onError(e); },
+        this._opts);
+    };
+
+    return CurrentPositionObservable;
+  }(ObservableBase));
+
+  var WatchPositionObservable = (function (__super__) {
+    inherits(WatchPositionObservable, __super__);
+    function WatchPositionObservable(opts) {
+      this._opts = opts;
+      __super__.call(this);
+    }
+
+    function WatchPositionDisposable(id) {
+      this._id = id;
+      this.isDisposed = false;
+    }
+
+    WatchPositionDisposable.prototype.dispose = function () {
+      if (!this.isDisposed) {
+        this.isDisposed = true;
+        root.navigator.geolocation.clearWatch(this._id);
+      }
+    };
+
+    WatchPositionObservable.prototype.subscribeCore = function (o) {
+      var watchId = root.navigator.geolocation.watchPosition(
+        function (x) { o.onNext(x); },
+        function (e) { o.onError(e); },
+        this._opts);
+
+      return new WatchPositionDisposable(watchId);
+    };
+
+    return WatchPositionObservable;
+  }(ObservableBase));
+
+  Rx.DOM.geolocation = {
+    /**
+    * Obtains the geographic position, in terms of latitude and longitude coordinates, of the device.
+    * @param {Object} [geolocationOptions] An object literal to specify one or more of the following attributes and desired values:
+    *   - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
+    *   - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
+    *              If timeout is Infinity, (the default value) the location request will not time out.
+    *              If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
+    *   - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
+    *                 If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
+    *                 If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
+    *                 If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
+    * @returns {Observable} An observable sequence with the geographical location of the device running the client.
+    */
+    getCurrentPosition: function (geolocationOptions) {
+      if (!root.navigator && !root.navigation.geolocation) { throw new TypeError('geolocation not available'); }
+      return new CurrentPositionObservable(geolocationOptions);
+    },
+
+    /**
+    * Begins listening for updates to the current geographical location of the device running the client.
+    * @param {Object} [geolocationOptions] An object literal to specify one or more of the following attributes and desired values:
+    *   - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
+    *   - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
+    *              If timeout is Infinity, (the default value) the location request will not time out.
+    *              If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
+    *   - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
+    *                 If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
+    *                 If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
+    *                 If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
+    * @returns {Observable} An observable sequence with the current geographical location of the device running the client.
+    */
+    watchPosition: function (geolocationOptions) {
+      if (!root.navigator && !root.navigation.geolocation) { throw new TypeError('geolocation not available'); }
+      return new WatchPositionObservable(geolocationOptions).publish().refCount();
+    }
+  };
+
+  var FromReaderObservable = (function (__super__) {
+    inherits(FromReaderObservable, __super__);
+    function FromReaderObservable(readerFn, file, progressObserver, encoding) {
+      this._readerFn  = readerFn;
+      this._file = file;
+      this._progressObserver = progressObserver;
+      this._encoding = encoding;
+      __super__.call(this);
+    }
+
+    function createLoadHandler(o, p) {
+      return function loadHandler(e) {
+        p && p.onCompleted();
+        o.onNext(e.target.result);
+        o.onCompleted();
+      };
+    }
+
+    function createErrorHandler(o) { return function errorHandler (e) { o.onError(e.target.error); }; }
+    function createProgressHandler(o) { return function progressHandler (e) { o.onNext(e); }; }
+
+    function FromReaderDisposable(reader, progressObserver, loadHandler, errorHandler, progressHandler) {
+      this._r = reader;
+      this._po = progressObserver;
+      this._lFn = loadHandler;
+      this._eFn = errorHandler;
+      this._pFn = progressHandler;
+      this.isDisposed = false;
+    }
+
+    FromReaderDisposable.prototype.dispose = function () {
+      if (!this.isDisposed) {
+        this.isDisposed = true;
+        this._r.readyState === root.FileReader.LOADING && this._r.abort();
+        this._r.removeEventListener('load', this._lFn, false);
+        this._r.removeEventListener('error', this._eFn, false);
+        this._po && this._r.removeEventListener('progress', this._pFn, false);
+      }
+    };
+
+    FromReaderObservable.prototype.subscribeCore = function (o) {
+      var reader = new root.FileReader();
+
+      var loadHandler = createLoadHandler(o, this._progressObserver);
+      var errorHandler = createErrorHandler(o);
+      var progressHandler = createProgressHandler(this._progressObserver);
+
+      reader.addEventListener('load', loadHandler, false);
+      reader.addEventListener('error', errorHandler, false);
+      this._progressObserver && reader.addEventListener('progress', progressHandler, false);
+
+      reader[this._readerFn](this._file, this._encoding);
+
+      return new FromReaderDisposable(reader, this._progressObserver, loadHandler, errorHandler, progressHandler);
+    };
+
+    return FromReaderObservable;
+  }(ObservableBase));
+
+  /**
+   * The FileReader object lets web applications asynchronously read the contents of
+   * files (or raw data buffers) stored on the user's computer, using File or Blob objects
+   * to specify the file or data to read as an observable sequence.
+   * @param {String} file The file to read.
+   * @param {Observer} An observer to watch for progress.
+   * @returns {Object} An object which contains methods for reading the data.
+   */
+  dom.fromReader = function(file, progressObserver) {
+    if (!root.FileReader) { throw new TypeError('FileReader not implemented in your runtime.'); }
+
+    return {
+      /**
+       * This method is used to read the file as an ArrayBuffer as an Observable stream.
+       * @returns {Observable} An observable stream of an ArrayBuffer
+       */
+      asArrayBuffer : function() {
+        return new FromReaderObservable('readAsArrayBuffer', file, progressObserver);
+      },
+      /**
+       * This method is used to read the file as a binary data string as an Observable stream.
+       * @returns {Observable} An observable stream of a binary data string.
+       */
+      asBinaryString : function() {
+        return new FromReaderObservable('readAsBinaryString', file, progressObserver);
+      },
+      /**
+       * This method is used to read the file as a URL of the file's data as an Observable stream.
+       * @returns {Observable} An observable stream of a URL representing the file's data.
+       */
+      asDataURL : function() {
+        return new FromReaderObservable('readAsDataURL', file, progressObserver);
+      },
+      /**
+       * This method is used to read the file as a string as an Observable stream.
+       * @returns {Observable} An observable stream of the string contents of the file.
+       */
+      asText : function(encoding) {
+        return new FromReaderObservable('readAsText', file, progressObserver, encoding);
+      }
+    };
+  };
+
+  var EventSourceObservable = (function(__super__) {
+    inherits(EventSourceObservable, __super__);
+    function EventSourceObservable(url, open) {
+      this._url = url;
+      this._open = open;
+      __super__.call(this);
+    }
+
+    function createOnOpen(o, source) {
+      return function onOpen(e) {
+        o.onNext(e);
+        o.onCompleted();
+        source.removeEventListener('open', onOpen, false);
+      };
+    }
+
+    function createOnError(o) {
+      return function onError(e) {
+        if (e.readyState === EventSource.CLOSED) {
+          o.onCompleted();
+        } else {
+          o.onError(e);
+        }
+      };
+    }
+
+    function createOnMessage(o) { return function onMessage(e) { o.onNext(e); }; }
+
+    function EventSourceDisposable(s, errFn, msgFn) {
+      this._s = s;
+      this._errFn = errFn;
+      this._msgFn = msgFn;
+      this.isDisposed = false;
+    }
+
+    EventSourceDisposable.prototype.dispose = function () {
+      if (!this.isDisposed) {
+        this._s.removeEventListener('error', this._errFn, false);
+        this._s.removeEventListener('message', this._msgFn, false);
+        this._s.close();
+      }
+    };
+
+    EventSourceObservable.prototype.subscribeCore = function (o) {
+      var source = new EventSource(this._url);
+      var onOpen = createOnOpen(this._open, source);
+      var onError = createOnError(o);
+      var onMessage = createOnMessage(o);
+
+      this._open && source.addEventListener('open', onOpen, false);
+      source.addEventListener('error', onError, false);
+      source.addEventListener('message', onMessage, false);
+
+      return new EventSourceDisposable(source, onError, onMessage);
+    };
+
+    return EventSourceObservable;
+  }(ObservableBase));
+
+  /**
+   * This method wraps an EventSource as an observable sequence.
+   * @param {String} url The url of the server-side script.
+   * @param {Observer} [openObserver] An optional observer for the 'open' event for the server side event.
+   * @returns {Observable} An observable sequence which represents the data from a server-side event.
+   */
+  dom.fromEventSource = function (url, openObserver) {
+    if (!root.EventSource) { throw new TypeError('EventSource not implemented in your runtime.'); }
+    return new EventSourceObservable(url, openObserver);
+  };
+
   var requestAnimFrame, cancelAnimFrame;
   if (root.requestAnimationFrame) {
     requestAnimFrame = root.requestAnimationFrame;
@@ -680,38 +1081,48 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
    * Gets a scheduler that schedules schedules work on the requestAnimationFrame for immediate actions.
    */
   Scheduler.requestAnimationFrame = (function () {
+    var RequestAnimationFrameScheduler = (function (__super__) {
+      inherits(RequestAnimationFrameScheduler, __super__);
+      function RequestAnimationFrameScheduler() {
+        __super__.call(this);
+      }
 
-    function scheduleNow(state, action) {
-      var scheduler = this,
-        disposable = new SingleAssignmentDisposable();
-      var id = requestAnimFrame(function () {
-        !disposable.isDisposed && (disposable.setDisposable(action(scheduler, state)));
-      });
-      return new CompositeDisposable(disposable, disposableCreate(function () {
-        cancelAnimFrame(id);
-      }));
-    }
+      function scheduleAction(disposable, action, scheduler, state) {
+        return function schedule() {
+          !disposable.isDisposed && disposable.setDisposable(Disposable._fixup(action(scheduler, state)));
+        };
+      }
 
-    function scheduleRelative(state, dueTime, action) {
-      var scheduler = this, dt = Scheduler.normalize(dueTime);
-      if (dt === 0) { return scheduler.scheduleWithState(state, action); }
-      var disposable = new SingleAssignmentDisposable();
-      var id = root.setTimeout(function () {
-        if (!disposable.isDisposed) {
-          disposable.setDisposable(action(scheduler, state));
+      function ClearDisposable(method, id) {
+        this._id = id;
+        this._method = method;
+        this.isDisposed = false;
+      }
+
+      ClearDisposable.prototype.dispose = function () {
+        if (!this.isDisposed) {
+          this.isDisposed = true;
+          this._method.call(null, this._id);
         }
-      }, dt);
-      return new CompositeDisposable(disposable, disposableCreate(function () {
-        root.clearTimeout(id);
-      }));
-    }
+      };
 
-    function scheduleAbsolute(state, dueTime, action) {
-      return this.scheduleWithRelativeAndState(state, dueTime - this.now(), action);
-    }
+      RequestAnimationFrameScheduler.prototype.schedule = function (state, action) {
+        var disposable = new SingleAssignmentDisposable(),
+            id = requestAnimFrame(scheduleAction(disposable, action, this, state));
+        return new BinaryDisposable(disposable, new ClearDisposable(cancelAnimFrame, id));
+      };
 
-    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);
+      RequestAnimationFrameScheduler.prototype._scheduleFuture = function (state, dueTime, action) {
+        if (dueTime === 0) { return this.schedule(state, action); }
+        var disposable = new SingleAssignmentDisposable(),
+            id = root.setTimeout(scheduleAction(disposable, action, this, state), dueTime);
+        return new BinaryDisposable(disposable, new ClearDisposable(root.clearTimeout, id));
+      };
 
+      return RequestAnimationFrameScheduler;
+    }(Scheduler));
+
+    return new RequestAnimationFrameScheduler();
   }());
 
   /**
@@ -787,9 +1198,7 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
       scheduleMethod = function (action) {
         var id = nextHandle++;
         tasksByHandle[id] = action;
-        root.setImmediate(function () {
-          runTask(id);
-        });
+        root.setImmediate(function () { runTask(id); });
 
         return id;
       };
@@ -811,8 +1220,8 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
 
       scheduleMethod = function (action) {
         var id = nextHandle++;
-        tasksByHandle[currentId] = action;
-        root.postMessage(MSG_PREFIX + currentId, '*');
+        tasksByHandle[id] = action;
+        root.postMessage(MSG_PREFIX + id, '*');
         return id;
       };
     } else if (!!root.MessageChannel) {
@@ -858,169 +1267,49 @@ function normalizeAjaxSuccessEvent(e, xhr, settings) {
       };
     }
 
-    function scheduleNow(state, action) {
-
-      var scheduler = this,
-        disposable = new SingleAssignmentDisposable();
-
-      var id = scheduleMethod(function () {
-        !disposable.isDisposed && (disposable.setDisposable(action(scheduler, state)));
-      });
-
-      return new CompositeDisposable(disposable, disposableCreate(function () {
-        clearMethod(id);
-      }));
-    }
-
-    function scheduleRelative(state, dueTime, action) {
-      var scheduler = this, dt = Scheduler.normalize(dueTime);
-      if (dt === 0) { return scheduler.scheduleWithState(state, action); }
-      var disposable = new SingleAssignmentDisposable();
-      var id = root.setTimeout(function () {
-        if (!disposable.isDisposed) {
-          disposable.setDisposable(action(scheduler, state));
-        }
-      }, dt);
-      return new CompositeDisposable(disposable, disposableCreate(function () {
-        root.clearTimeout(id);
-      }));
-    }
-
-    function scheduleAbsolute(state, dueTime, action) {
-      return this.scheduleWithRelativeAndState(state, dueTime - this.now(), action);
-    }
-
-    return new Scheduler(defaultNow, scheduleNow, scheduleRelative, scheduleAbsolute);
-  }());
-
-  Rx.DOM.geolocation = {
-    /**
-    * Obtains the geographic position, in terms of latitude and longitude coordinates, of the device.
-    * @param {Object} [geolocationOptions] An object literal to specify one or more of the following attributes and desired values:
-    *   - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
-    *   - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
-    *              If timeout is Infinity, (the default value) the location request will not time out.
-    *              If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
-    *   - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
-    *                 If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
-    *                 If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
-    *                 If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
-    * @returns {Observable} An observable sequence with the geographical location of the device running the client.
-    */
-    getCurrentPosition: function (geolocationOptions) {
-      if (!root.navigator && !root.navigation.geolocation) { throw new TypeError('geolocation not available'); }
-
-      return new AnonymousObservable(function (observer) {
-        root.navigator.geolocation.getCurrentPosition(
-          function (data) {
-            observer.onNext(data);
-            observer.onCompleted();
-          },
-          observer.onError.bind(observer),
-          geolocationOptions);
-      });
-    },
-
-    /**
-    * Begins listening for updates to the current geographical location of the device running the client.
-    * @param {Object} [geolocationOptions] An object literal to specify one or more of the following attributes and desired values:
-    *   - enableHighAccuracy: Specify true to obtain the most accurate position possible, or false to optimize in favor of performance and power consumption.
-    *   - timeout: An Integer value that indicates the time, in milliseconds, allowed for obtaining the position.
-    *              If timeout is Infinity, (the default value) the location request will not time out.
-    *              If timeout is zero (0) or negative, the results depend on the behavior of the location provider.
-    *   - maximumAge: An Integer value indicating the maximum age, in milliseconds, of cached position information.
-    *                 If maximumAge is non-zero, and a cached position that is no older than maximumAge is available, the cached position is used instead of obtaining an updated location.
-    *                 If maximumAge is zero (0), watchPosition always tries to obtain an updated position, even if a cached position is already available.
-    *                 If maximumAge is Infinity, any cached position is used, regardless of its age, and watchPosition only tries to obtain an updated position if no cached position data exists.
-    * @returns {Observable} An observable sequence with the current geographical location of the device running the client.
-    */
-    watchPosition: function (geolocationOptions) {
-      if (!root.navigator && !root.navigation.geolocation) { throw new TypeError('geolocation not available'); }
-
-      return new AnonymousObservable(function (observer) {
-        var watchId = root.navigator.geolocation.watchPosition(
-          observer.onNext.bind(observer),
-          observer.onError.bind(observer),
-          geolocationOptions);
-
-        return function () {
-          root.navigator.geolocation.clearWatch(watchId);
-        };
-      }).publish().refCount();
-    }
-  };
-
-  /**
-   * The FileReader object lets web applications asynchronously read the contents of
-   * files (or raw data buffers) stored on the user's computer, using File or Blob objects
-   * to specify the file or data to read as an observable sequence.
-   * @param {String} file The file to read.
-   * @param {Observer} An observer to watch for progress.
-   * @returns {Object} An object which contains methods for reading the data.
-   */
-  dom.fromReader = function(file, progressObserver) {
-    if (!root.FileReader) { throw new TypeError('FileReader not implemented in your runtime.'); }
-
-    function _fromReader(readerFn, file, encoding) {
-      return new AnonymousObservable(function(observer) {
-        var reader = new root.FileReader();
-        var subject = new AsyncSubject();
-
-        function loadHandler(e) {
-          progressObserver && progressObserver.onCompleted();
-          subject.onNext(e.target.result);
-          subject.onCompleted();
-        }
-
-        function errorHandler(e) { subject.onError(e.target.error); }
-        function progressHandler(e) { progressObserver.onNext(e); }
-
-        reader.addEventListener('load', loadHandler, false);
-        reader.addEventListener('error', errorHandler, false);
-        progressObserver && reader.addEventListener('progress', progressHandler, false);
-
-        reader[readerFn](file, encoding);
-
-        return new CompositeDisposable(subject.subscribe(observer), disposableCreate(function () {
-          reader.readyState == root.FileReader.LOADING && reader.abort();
-          reader.removeEventListener('load', loadHandler, false);
-          reader.removeEventListener('error', errorHandler, false);
-          progressObserver && reader.removeEventListener('progress', progressHandler, false);
-        }));
-      });
-    }
-
-    return {
-      /**
-       * This method is used to read the file as an ArrayBuffer as an Observable stream.
-       * @returns {Observable} An observable stream of an ArrayBuffer
-       */
-      asArrayBuffer : function() {
-        return _fromReader('readAsArrayBuffer', file);
-      },
-      /**
-       * This method is used to read the file as a binary data string as an Observable stream.
-       * @returns {Observable} An observable stream of a binary data string.
-       */
-      asBinaryString : function() {
-        return _fromReader('readAsBinaryString', file);
-      },
-      /**
-       * This method is used to read the file as a URL of the file's data as an Observable stream.
-       * @returns {Observable} An observable stream of a URL representing the file's data.
-       */
-      asDataURL : function() {
-        return _fromReader('readAsDataURL', file);
-      },
-      /**
-       * This method is used to read the file as a string as an Observable stream.
-       * @returns {Observable} An observable stream of the string contents of the file.
-       */
-      asText : function(encoding) {
-        return _fromReader('readAsText', file, encoding);
+    var MicroTaskScheduler = (function (__super__) {
+      inherits(MicroTaskScheduler, __super__);
+      function MicroTaskScheduler() {
+        __super__.call(this);
       }
-    };
-  };
+
+      function scheduleAction(disposable, action, scheduler, state) {
+        return function schedule() {
+          !disposable.isDisposed && disposable.setDisposable(Disposable._fixup(action(scheduler, state)));
+        };
+      }
+
+      function ClearDisposable(method, id) {
+        this._id = id;
+        this._method = method;
+        this.isDisposed = false;
+      }
+
+      ClearDisposable.prototype.dispose = function () {
+        if (!this.isDisposed) {
+          this.isDisposed = true;
+          this._method.call(null, this._id);
+        }
+      };
+
+      MicroTaskScheduler.prototype.schedule = function (state, action) {
+        var disposable = new SingleAssignmentDisposable(),
+            id = scheduleMethod(scheduleAction(disposable, action, this, state));
+        return new BinaryDisposable(disposable, new ClearDisposable(clearMethod, id));
+      };
+
+      MicroTaskScheduler.prototype._scheduleFuture = function (state, dueTime, action) {
+        if (dueTime === 0) { return this.schedule(state, action); }
+        var disposable = new SingleAssignmentDisposable(),
+            id = root.setTimeout(scheduleAction(disposable, action, this, state), dueTime);
+        return new BinaryDisposable(disposable, new ClearDisposable(root.clearTimeout, id));
+      };
+
+      return MicroTaskScheduler;
+    }(Scheduler));
+
+    return new MicroTaskScheduler();
+  }());
 
   return Rx;
 }));

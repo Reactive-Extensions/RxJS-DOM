@@ -19,6 +19,7 @@
   "devDependencies": {
     "grunt-cli": "*",
     "grunt": "*",
+    "grunt-contrib-copy": "*",
     "grunt-contrib-jshint": "*",
     "grunt-contrib-connect": "*",
     "grunt-contrib-uglify": "*",
