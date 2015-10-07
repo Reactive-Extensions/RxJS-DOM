@@ -23,6 +23,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.js',
             'src/headers/header.js',
+            'src/internal/trycatch.js',
 
             'src/events/fromevent.js',
             'src/events/events.js',
@@ -47,6 +48,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.js',
             'src/headers/header.js',
+            'src/internal/trycatch.js',
 
             'src/events/addeventlistenerpolyfill.js',
             'src/events/fromevent.js',
@@ -72,6 +74,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.js',
             'src/headers/header.ajax.js',
+            'src/internal/trycatch.js',
 
             'src/ajax/ajax.js',
             'src/ajax/jsonp.js',
@@ -85,6 +88,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.compat.js',
             'src/headers/header.ajax.js',
+            'src/internal/trycatch.js',
 
             'src/ajax/ajax.js',
             'src/ajax/jsonp.js',
@@ -98,6 +102,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.js',
             'src/headers/header.events.js',
+            'src/internal/trycatch.js',
 
             'src/events/fromevent.js',
             'src/events/events.js',
@@ -112,6 +117,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.compat.js',
             'src/headers/header.events.js',
+            'src/internal/trycatch.js',
 
             'src/events/addeventlistenerpolyfill.js',
             'src/events/fromevent.js',
@@ -127,6 +133,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.js',
             'src/headers/header.html.js',
+            'src/internal/trycatch.js',
 
             'src/dom/websocket.js',
             'src/dom/webworker.js',
@@ -143,6 +150,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.compat.js',
             'src/headers/header.html.js',
+            'src/internal/trycatch.js',
 
             'src/dom/websocket.js',
             'src/dom/webworker.js',
@@ -159,6 +167,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.js',
             'src/headers/header.concurrency.js',
+            'src/internal/trycatch.js',
 
             'src/concurrency/requestanimationframescheduler.js',
             'src/concurrency/microtaskscheduler.js',
@@ -172,6 +181,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.compat.js',
             'src/headers/header.concurrency.js',
+            'src/internal/trycatch.js',
 
             'src/concurrency/requestanimationframescheduler.js',
             'src/concurrency/microtaskscheduler.js',
@@ -185,6 +195,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.js',
             'src/headers/header.js',
+            'src/internal/trycatch.js',
 
             'src/events/fromevent.js',
             'src/events/events.js',
@@ -209,6 +220,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.compat.js',
             'src/headers/header.js',
+            'src/internal/trycatch.js',
 
             'src/events/addeventlistenerpolyfill.js',
             'src/events/fromevent.js',
@@ -234,6 +246,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.js',
             'src/headers/header.ajax.js',
+            'src/internal/trycatch.js',
 
             'src/ajax/ajax.js',
             'src/ajax/jsonp.js',
@@ -247,6 +260,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.compat.js',
             'src/headers/header.ajax.js',
+            'src/internal/trycatch.js',
 
             'src/ajax/ajax.js',
             'src/ajax/jsonp.js',
@@ -260,6 +274,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.js',
             'src/headers/header.events.js',
+            'src/internal/trycatch.js',
 
             'src/events/fromevent.js',
             'src/events/events.js',
@@ -274,6 +289,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.compat.js',
             'src/headers/header.events.js',
+            'src/internal/trycatch.js',
 
             'src/events/addeventlistenerpolyfill.js',
             'src/events/fromevent.js',
@@ -289,6 +305,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.js',
             'src/headers/header.html.js',
+            'src/internal/trycatch.js',
 
             'src/dom/websocket.js',
             'src/dom/webworker.js',
@@ -305,6 +322,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.compat.js',
             'src/headers/header.html.js',
+            'src/internal/trycatch.js',
 
             'src/dom/websocket.js',
             'src/dom/webworker.js',
@@ -321,6 +339,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.js',
             'src/headers/header.concurrency.js',
+            'src/internal/trycatch.js',
 
             'src/concurrency/requestanimationframescheduler.js',
             'src/concurrency/microtaskscheduler.js',
@@ -334,6 +353,7 @@ module.exports = function (grunt) {
             'src/headers/license.js',
             'src/headers/intro.lite.compat.js',
             'src/headers/header.concurrency.js',
+            'src/internal/trycatch.js',
 
             'src/concurrency/requestanimationframescheduler.js',
             'src/concurrency/microtaskscheduler.js',

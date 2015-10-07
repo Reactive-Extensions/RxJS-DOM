@@ -24,7 +24,7 @@
       };
     }
 
-    function createOnMessage(o) { return function onMessage(e) { o.onNext(e); }; }
+    function createOnMessage(o) { return function onMessage(e) { o.onNext(e.data); }; }
 
     function EventSourceDisposable(s, errFn, msgFn) {
       this._s = s;

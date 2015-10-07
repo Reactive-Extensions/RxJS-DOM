@@ -51,6 +51,28 @@
     isFunction = Rx.helpers.isFunction,
     inherits = Rx.internals.inherits;
 
+  var errorObj = {e: {}};
+
+  function tryCatcherGen(tryCatchTarget) {
+    return function tryCatcher() {
+      try {
+        return tryCatchTarget.apply(this, arguments);
+      } catch (e) {
+        errorObj.e = e;
+        return errorObj;
+      }
+    };
+  }
+
+  function tryCatch(fn) {
+    if (!isFunction(fn)) { throw new TypeError('fn must be a function'); }
+    return tryCatcherGen(fn);
+  };
+
+  function thrower(e) {
+    throw e;
+  }
+
   root.Element && root.Element.prototype.attachEvent && !root.Element.prototype.addEventListener && (function () {
     function addMethod(name, fn) {
       Window.prototype[name] = HTMLDocument.prototype[name] = Element.prototype[name] = fn;
