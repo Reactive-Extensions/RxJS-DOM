@@ -1,5 +1,5 @@
 ### `Rx.DOM.geolocation.getCurrentPosition([geolocationOptions])`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/geolocation.js "View in source") 
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/dom/geolocation.js "View in source")
 
 Obtains the geographic position, in terms of latitude and longitude coordinates, of the device.
 
@@ -48,16 +48,13 @@ var subscription = source.subscribe(
 ### Location
 
 File:
-- [`/src/geolocation.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/geolocation.js)
+- [`/src/dom/geolocation.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/dom/geolocation.js)
 
 Dist:
-- [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
+- [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js)
 
 Prerequisites:
-- If using `rx.js`
-  - [`rx.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.js) | [`rx.compat.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.compat.js)
-  - [`rx.binding.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.binding.js)
-- [`rx.lite.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/rx.lite.js) | [`rx.lite.compat.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/rx.lite.compat.js)
+- [`rx.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.js) |  [`rx.lite.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/rx.lite.js)
 
 NPM Packages:
 - [`rx-dom`](https://preview.npmjs.com/package/rx-dom)
@@ -66,4 +63,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.geolocation.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.geolocation.js)
+- [`/tests/dom/tests.geolocation.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/dom/tests.geolocation.js)

@@ -1,5 +1,5 @@
 ### `Rx.DOM.fromEvent(element, eventName, [selector], [useCapture])`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/fromevent.js "View in source")
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events/fromevent.js "View in source")
 
 Creates an observable sequence by adding an event listener to the matching DOMElement or DOMNodeList.
 
@@ -34,8 +34,7 @@ var subscription = source.subscribe(
 ### Location
 
 File:
-- [`/src/fromevent.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/fromevent.js)
-- [`/src/fromevent.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/fromevent.compat.js)
+- [`/src/fromevent.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events/fromevent.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
@@ -53,4 +52,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/fromevent.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/fromevent.js)
+- [`/tests/events/tests.events.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.fromevent.js)

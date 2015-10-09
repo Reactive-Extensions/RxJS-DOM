@@ -1,7 +1,7 @@
-### `Rx.DOM.fromWebSocket(url, protocol, [observerOrOnNext])`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/websocket.js "View in source")
+### `Rx.DOM.fromWebSocket(url, protocol, [openObserver], [closeObserver])`
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/dom/websocket.js "View in source")
 
-Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event.
+Creates a WebSocket Subject with a given URL, protocol and an optional observer for the open event and for close.
 
 #### Arguments
 1. `url` *(String)*: The URL of the WebSocket.
@@ -38,11 +38,11 @@ socket = Rx.DOM.fromWebSocket(
 // message events
 socket.subscribe(
   function(e) {
-    console.log('message: ', e.data);
+    console.log('message: %s', e.data);
   },
   function(e) {
     // errors and "unclean" closes land here
-    console.error('error: ', e);
+    console.error('error: %s', e);
   },
   function() {
     // the socket has been closed
@@ -54,16 +54,13 @@ socket.subscribe(
 ### Location
 
 File:
-- [`/src/websocket.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/websocket.js)
+- [`/src/dom/websocket.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/dom/websocket.js)
 
 Dist:
-- [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
+- [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js)
 
 Prerequisites:
-- If using `rx.js`
-  - [`rx.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.js) | [`rx.compat.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.compat.js)
-  - [`rx.binding.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.binding.js)
-- [`rx.lite.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.lite.js) | [`rx.lite.compat.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.lite.compat.js)
+- [`rx.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.js) |  [`rx.lite.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/rx.lite.js)
 
 NPM Packages:
 - [`rx-dom`](https://preview.npmjs.com/package/rx-dom)

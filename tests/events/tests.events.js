@@ -72,6 +72,31 @@
     );
   });
 
+  test('Event shortcut', function () {
+    var element = new MockEventTarget('foo');
+
+    var scheduler = new TestScheduler();
+
+    var source, subscription;
+    var results = scheduler.createObserver();
+
+    scheduler.scheduleAbsolute(null, 100, function () { source = DOM.mousemove(element); });
+    scheduler.scheduleAbsolute(null, 200, function () { subscription = source.subscribe(results); });
+    scheduler.scheduleAbsolute(null, 1000, function () { subscription.dispose(); });
+
+    scheduler.scheduleAbsolute(null, 300, function () { element.trigger('mousemove', 1); });
+    scheduler.scheduleAbsolute(null, 400, function () { element.trigger('mousemove', 2); });
+    scheduler.scheduleAbsolute(null, 500, function () { element.trigger('mousemove', 3); });
+
+    scheduler.start();
+
+    results.messages.assertEqual(
+      onNext(300, 1),
+      onNext(400, 2),
+      onNext(500, 3)
+    );
+  });
+
   test('Event some miss', function () {
     var element = new MockEventTarget('foo');
 

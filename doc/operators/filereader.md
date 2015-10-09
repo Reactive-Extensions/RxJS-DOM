@@ -1,5 +1,5 @@
 `Rx.DOM.fromReader(file, [progressObserver])`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/fromreader.js "View in source")
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/dom/fromreader.js "View in source")
 
 The FileReader object lets web applications asynchronously read the contents of files (or raw data buffers) stored on the user's computer, using File or Blob objects to specify the file or data to read as an observable sequence.
 
@@ -36,7 +36,7 @@ Rx.DOM.change(filesInput)
 ### Location
 
 File:
-- [`/src/fromreader.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/fromreader.js)
+- [`/src/dom/fromreader.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/dom/fromreader.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js)
@@ -51,4 +51,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.filereader.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.filereader.js)
+- [`/tests/dom/tests.filereader.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/dom/tests.filereader.js)

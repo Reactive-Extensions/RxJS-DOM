@@ -1,5 +1,5 @@
 `Rx.DOM.ajax(url | settings)`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax.js "View in source")
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax/ajax.js "View in source")
 
 Creates an observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
 
@@ -54,15 +54,13 @@ Rx.DOM.ajax({ url: '/products', responseType: 'json'})
 ### Location
 
 File:
-- [`/src/ajax.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax.js)
+- [`/src/ajax/ajax.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax/ajax.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
 
 Prerequisites:
-- If using `rx.js`
-  - [`rx.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.js) | [`rx.compat.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.compat.js)
-  - [`rx.binding.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.binding.js)
+- [`rx.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.js) | [`rx.compat.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.compat.js)
 - [`rx.lite.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/rx.lite.js) | [`rx.lite.compat.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/rx.lite.compat.js)
 
 NPM Packages:

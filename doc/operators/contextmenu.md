@@ -1,5 +1,5 @@
 ### `Rx.DOM.contextmenu(element, [selector], [useCapture])`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events.js "View in source")
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events/events.js "View in source")
 
 Creates an observable sequence by adding an event listener to the matching DOMElement or DOMNodeList for the `contextmenu` event.
 
@@ -33,7 +33,7 @@ var subscription = source.subscribe(
 ### Location
 
 File:
-- [`/src/events.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events.js)
+- [`/src/events/events.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/events/events.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
@@ -51,4 +51,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/events.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/events.js)
+- [`/tests/events/tests.events.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/events/tests.events.js)

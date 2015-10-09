@@ -1,5 +1,5 @@
 ### `Rx.DOM.fromMutationObserver(target, options)`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/frommutationobserver.js "View in source") 
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/mutationobserver.js "View in source")
 
 Creates an observable sequence from a `MutationObserver`.  The `MutationObserver` provides developers a way to react to changes in a DOM.  This requires `MutationObserver` to be supported in your browser/JavaScript runtime.
 
@@ -14,9 +14,9 @@ Creates an observable sequence from a `MutationObserver`.  The `MutationObserver
 ```js
 var foo = document.getElementById('foo');
 
-var obs = Rx.DOM.fromMutationObserver(foo, { 
-  attributes: true, 
-  childList: true, 
+var obs = Rx.DOM.fromMutationObserver(foo, {
+  attributes: true,
+  childList: true,
   characterData: true,
   attributeFilter: ["id", "dir"],
   attributeOldValue: true
@@ -39,16 +39,13 @@ obs.subscribe(function (mutations) {
 ### Location
 
 File:
-- [`/src/frommutationobserver.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/frommutationobserver.js)
+- [`/src/dom/mutationobserver.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/mutationobserver.js)
 
 Dist:
-- [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
+- [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js)
 
 Prerequisites:
-- If using `rx.js`
-  - [`rx.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.js) | [`rx.compat.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.compat.js)
-  - [`rx.binding.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.binding.js)
-- [`rx.lite.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/rx.lite.js) | [`rx.lite.compat.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/rx.lite.compat.js)
+- [`rx.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/dist/rx.js) |  [`rx.lite.js`](https://github.com/Reactive-Extensions/RxJS/blob/master/rx.lite.js)
 
 NPM Packages:
 - [`rx-dom`](https://preview.npmjs.com/package/rx-dom)
@@ -57,4 +54,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.frommutationobserver.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.frommutationobserver.js)
+- [`/tests/dom/tests.mutationobserver.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/dom/tests.mutationobserver.js)
