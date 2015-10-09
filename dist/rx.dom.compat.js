@@ -849,12 +849,12 @@
 
   var WorkerObserver = (function (__super__) {
     inherits(WorkerObserver, __super__);
-    function WorkerObserver(worker) {
-      this._worker = worker;
+    function WorkerObserver(state) {
+      this._state = state;
       __super__.call(this);
     }
 
-    WorkerObserver.prototype.next = function (x) { this._worker.postMessage(x); };
+    WorkerObserver.prototype.next = function (x) { this._state.worker && this._state.worker.postMessage(x); };
     WorkerObserver.prototype.error = function (e) { throw e; };
     WorkerObserver.prototype.completed = function () { };
 
@@ -863,8 +863,9 @@
 
   var WorkerObservable = (function (__super__) {
     inherits(WorkerObservable, __super__);
-    function WorkerObservable(worker) {
-      this._worker = worker;
+    function WorkerObservable(state, url) {
+      this._state = state;
+      this._url = url;
       __super__.call(this);
     }
 
@@ -879,19 +880,24 @@
     }
 
     WorkerDisposable.prototype.dispose = function () {
-      this._w.terminate();
-      this._w.removeEventListener('message', this._msgFn, false);
-      this._w.removeEventListener('error', this._errFn, false);
+      if (!this.isDisposed) {
+        this.isDisposed = true;
+        this._w.terminate();
+        this._w.removeEventListener('message', this._msgFn, false);
+        this._w.removeEventListener('error', this._errFn, false);
+      }
     };
 
     WorkerObservable.prototype.subscribeCore = function (o) {
+      this._state.worker = new root.Worker(this._url);
+
       var messageHandler = createMessageHandler(o);
       var errHandler = createErrHandler(o);
 
-      this._worker.addEventListener('message', messageHandler, false);
-      this._worker.addEventListener('error', errHandler, false);
+      this._state.worker.addEventListener('message', messageHandler, false);
+      this._state.worker.addEventListener('error', errHandler, false);
 
-      return new WorkerDisposable(this._worker, messageHandler, errHandler);
+      return new WorkerDisposable(this._state.worker, messageHandler, errHandler);
     };
 
     return WorkerObservable;
@@ -906,10 +912,10 @@
    * @param {String} url The URL of the Web Worker.
    * @returns {Subject} A Subject wrapping the Web Worker.
    */
-  dom.fromWebWorker = function (url) {
+  dom.fromWorker = function (url) {
     if (!root.Worker) { throw new TypeError('Worker not implemented in your runtime.'); }
-    var worker = new root.Worker(url);
-    return Subject.create(new WorkerObserver(worker), new WorkerObservable(worker));
+    var state = { worker: null };
+    return Subject.create(new WorkerObserver(state), new WorkerObservable(state, url));
   };
 
   var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
