@@ -1,5 +1,5 @@
 ### `Rx.DOM.getJSON(url)`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax.js "View in source") 
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax/ajax.js "View in source")
 
 Creates an observable sequence from JSON from an Ajax request.  This is just a shortcut to the [`Rx.DOM.ajax`](ajax.md) method with the GET method and parsing the `responseText` as JSON.
 
@@ -44,4 +44,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.ajax.js](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.ajax.js)
+- [`/tests/ajax/tests.ajax.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/ajax/tests.ajax.js)

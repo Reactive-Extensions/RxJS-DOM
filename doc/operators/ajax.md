@@ -1,10 +1,14 @@
-`Rx.DOM.ajax(url | settings)`
+### `Rx.DOM.ajax(url)`
+### `Rx.DOM.ajax(settings)`
 [&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax/ajax.js "View in source")
 
 Creates an observable for an Ajax request with either a settings object with url, headers, etc or a string for a URL.
 
 #### Arguments
 - `url` *(String)*: A string of the URL to make the Ajax call.
+
+OR
+
 - `settings` *(Object)*: An object with the following properties
 
     - `async` *(Boolean)*: Whether the request is async. The default is `true`.

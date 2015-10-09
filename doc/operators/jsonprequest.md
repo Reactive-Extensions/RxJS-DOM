@@ -1,5 +1,5 @@
 ### `Rx.DOM.jsonpRequest(url | settings)`
-[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/jsonp.js "View in source")
+[&#x24C8;](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax/jsonp.js "View in source")
 
 Creates an observable JSONP Request with the specified settings or a string URL.  **Note when using the method with a URL, it must contain JSONPRequest=?.**
 
@@ -15,6 +15,8 @@ Rx.DOM.Request.jsonpRequest(settings);
 
 #### Arguments
 - `url` *(String)*: A string of the URL to make the JSONP call.
+
+OR
 
 - `settings` *(Object)*: An object with the following properties:
     - `async` *(Boolean)*: Whether the request is async. The default is `true`.
@@ -62,7 +64,7 @@ Rx.DOM.jsonpRequest(url)
 ### Location
 
 File:
-- [`/src/jsonp.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/jsonp.js)
+- [`/src/ajax/jsonp.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/ajax/jsonp.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
@@ -80,4 +82,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.jsonp.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.jsonp.js)
+- [`/tests/ajax/tests.jsonp.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/ajax/tests.jsonp.js)

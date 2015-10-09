@@ -456,7 +456,14 @@
    * @returns {Observable} The observable sequence which contains the response from the Ajax POST.
    */
   dom.post = function (url, body) {
-    return ajaxRequest({ url: url, body: body, method: 'POST' });
+    var settings;
+    if (typeof url === 'string') {
+      settings = {url: url, body: body, method: 'POST' };
+    } else if (typeof url === 'object') {
+      settings = url;
+      settings.method = 'POST';
+    }
+    return ajaxRequest(settings);
   };
 
   /**
@@ -466,7 +473,13 @@
    * @returns {Observable} The observable sequence which contains the response from the Ajax GET.
    */
   dom.get = function (url) {
-    return ajaxRequest({ url: url });
+    var settings;
+    if (typeof url === 'string') {
+      settings = {url: url };
+    } else if (typeof url === 'object') {
+      settings = url;
+    }
+    return ajaxRequest(settings);
   };
 
   /**
