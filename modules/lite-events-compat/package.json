@@ -1,0 +1,37 @@
+{
+  "name": "rx-lite-dom-events-compat",
+  "title": "The Reactive Extensions Bindings for the DOM Events, Lite Compat Edition.",
+  "description": "Library for using DOM elements events with RxJS",
+  "version": "7.0.0",
+  "homepage": "https://github.com/Reactive-Extensions/RxJS-DOM",
+  "author": {
+    "name": "Microsoft",
+    "url": "https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/authors.txt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Reactive-Extensions/RxJS-DOM.git"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "rx-lite-compat": "*"
+  },
+  "jam": {
+    "main": "rx.lite.dom.events.compat.js"
+  },
+  "keywords": [
+    "Reactive",
+    "FRP",
+    "Rx",
+    "RxJS",
+    "DOM",
+    "Ajax",
+    "JSONP",
+    "HTML5",
+    "requestAnimationFrame",
+    "WebSockets",
+    "WebWorkers",
+    "Geolocation"
+  ],
+  "main": "rx.lite.dom.events.compat.js"
+}

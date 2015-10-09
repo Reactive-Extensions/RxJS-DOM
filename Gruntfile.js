@@ -550,15 +550,10 @@ module.exports = function (grunt) {
   // Default task(s).
   grunt.registerTask('default', [
     'concat:main',
-    'concat:main-compat',
     'concat:main-ajax',
-    'concat:main-ajax-compat',
     'concat:main-events',
-    'concat:main-events-compat',
     'concat:main-html',
-    'concat:main-html-compat',
     'concat:main-concurrency',
-    'concat:main-concurrency-compat',
 
     'concat:lite',
     'concat:lite-compat',
@@ -572,15 +567,10 @@ module.exports = function (grunt) {
     'concat:lite-concurrency-compat',
 
     'uglify:main',
-    'uglify:main-compat',
     'uglify:main-ajax',
-    'uglify:main-ajax-compat',
     'uglify:main-events',
-    'uglify:main-events-compat',
     'uglify:main-html',
-    'uglify:main-html-compat',
     'uglify:main-concurrency',
-    'uglify:main-concurrency-compat',
 
     'uglify:lite',
     'uglify:lite-compat',

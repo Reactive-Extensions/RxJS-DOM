@@ -1,0 +1,37 @@
+{
+  "name": "rx-dom-html",
+  "title": "The Reactive Extensions Bindings for the HTML5 DOM.",
+  "description": "Library for using WebSockets, Workers, Geolocation, etc with RxJS",
+  "version": "7.0.0",
+  "homepage": "https://github.com/Reactive-Extensions/RxJS-DOM",
+  "author": {
+    "name": "Microsoft",
+    "url": "https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/authors.txt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Reactive-Extensions/RxJS-DOM.git"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "rx": "*"
+  },
+  "jam": {
+    "main": "rx.dom.html.js"
+  },
+  "keywords": [
+    "Reactive",
+    "FRP",
+    "Rx",
+    "RxJS",
+    "DOM",
+    "Ajax",
+    "JSONP",
+    "HTML5",
+    "requestAnimationFrame",
+    "WebSockets",
+    "WebWorkers",
+    "Geolocation"
+  ],
+  "main": "rx.dom.html.js"
+}
