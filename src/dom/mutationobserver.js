@@ -1,4 +1,7 @@
-  var BrowserMutationObserver = root.MutationObserver || root.WebKitMutationObserver;
+  function getMutationObserver(next) {
+    var M = root.MutationObserver || root.WebKitMutationObserver;
+    return new M(next);
+  }
 
   var MutationObserverObservable = (function (__super__) {
     inherits(MutationObserverObservable, __super__);
@@ -21,7 +24,7 @@
     };
 
     MutationObserverObservable.prototype.subscribeCore = function (o) {
-      var mutationObserver = new BrowserMutationObserver(function (e) { o.onNext(e); });
+      var mutationObserver = getMutationObserver(function (e) { o.onNext(e); });
       mutationObserver.observe(this._target, this._options);
       return new InnerDisposable(mutationObserver);
     };
@@ -40,6 +43,6 @@
    * @returns {Observable} An observable sequence which contains mutations on the given DOM target.
    */
   dom.fromMutationObserver = function (target, options) {
-    if (!BrowserMutationObserver) { throw new TypeError('MutationObserver not implemented in your runtime.'); }
+    if (!(root.MutationObserver || root.WebKitMutationObserver)) { throw new TypeError('MutationObserver not implemented in your runtime.'); }
     return new MutationObserverObservable(target, options);
   };

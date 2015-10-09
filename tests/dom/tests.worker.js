@@ -54,8 +54,7 @@
       TestScheduler = Rx.TestScheduler,
       Observer = Rx.Observer,
       onNext = Rx.ReactiveTest.onNext,
-      onError = Rx.ReactiveTest.onError,
-      onCompleted = Rx.ReactiveTest.onCompleted;
+      onError = Rx.ReactiveTest.onError;
 
 	QUnit.module('Websocket', {
 		beforeEach: function(){
