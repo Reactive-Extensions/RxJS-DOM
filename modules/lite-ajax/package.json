@@ -2,7 +2,7 @@
   "name": "rx-lite-dom-ajax",
   "title": "The Reactive Extensions Bindings for the DOM Ajax, Lite Edition",
   "description": "Library for creating Ajax requests using RxJS",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "homepage": "https://github.com/Reactive-Extensions/RxJS-DOM",
   "author": {
     "name": "Microsoft",

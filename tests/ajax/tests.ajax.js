@@ -340,6 +340,43 @@
     requests[0].respond(500, { 'Content-Type': 'application/json' }, 'error');
   });
 
+  test('post form data success', function () {
+    var source = Rx.DOM.post({
+      url: '/products',
+      body: { foo: 123, bar: 456 },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+
+    source.subscribe(
+      function (x) {
+        // Ensure POST
+        equal('POST', x.xhr.method);
+
+        // Ensure body
+        equal('foo=123&bar=456', x.xhr.requestBody);
+
+        // Ensure status
+        equal(200, x.status);
+
+        // Ensure async
+        ok(x.xhr.async);
+
+        // Assert equality for the message
+        var resp = JSON.parse(x.xhr.responseText);
+        equal(456, resp[0].id);
+      },
+      function () {
+        ok(false);
+      },
+      function () {
+        ok(true);
+      }
+    );
+
+    requests[0].respond(200, { 'Content-Type': 'application/json' }, '[{ "id": 456 }]');
+  });
 
   test('post success', function () {
     var source = Rx.DOM.post('/products', { id: 123 });

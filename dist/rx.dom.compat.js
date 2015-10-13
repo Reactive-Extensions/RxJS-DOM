@@ -33,8 +33,6 @@
 
   var Observable = Rx.Observable,
     ObservableBase = Rx.ObservableBase,
-    observableProto = Observable.prototype,
-    AnonymousObservable = Rx.AnonymousObservable,
     AbstractObserver = Rx.internals.AbstractObserver,
     observerCreate = Rx.Observer.create,
     observableCreate = Rx.Observable.create,
@@ -67,7 +65,7 @@
   function tryCatch(fn) {
     if (!isFunction(fn)) { throw new TypeError('fn must be a function'); }
     return tryCatcherGen(fn);
-  };
+  }
 
   function thrower(e) {
     throw e;
@@ -266,7 +264,7 @@
       return function handler() {
         var results = arguments[0];
         if (fn) {
-          var results = tryCatch(fn).apply(null, arguments);
+          results = tryCatch(fn).apply(null, arguments);
           if (results === errorObj) { return o.onError(results.e); }
         }
         o.onNext(results);
@@ -437,22 +435,113 @@
     }
 
     AjaxObservable.prototype.subscribeCore = function (o) {
+      var state = { isDone: false };
       var xhr;
-      this._isDone = false;
 
+      var settings = this._settings;
+      var normalizeError = settings.normalizeError;
+      var normalizeSuccess = settings.normalizeSuccess;
 
+      var processResponse = function(xhr, e){
+        var status = xhr.status === 1223 ? 204 : xhr.status;
+        if ((status >= 200 && status <= 300) || status === 0 || status === '') {
+          o.onNext(normalizeSuccess(e, xhr, settings));
+          o.onCompleted();
+        } else {
+          o.onError(settings.normalizeError(e, xhr, 'error'));
+        }
+        state.isDone = true;
+      };
+
+      try {
+        xhr = settings.createXHR();
+      } catch (err) {
+        return o.onError(err);
+      }
+
+      try {
+        if (settings.user) {
+          xhr.open(settings.method, settings.url, settings.async, settings.user, settings.password);
+        } else {
+          xhr.open(settings.method, settings.url, settings.async);
+        }
+
+        var headers = settings.headers;
+        for (var header in headers) {
+          if (hasOwnProperty.call(headers, header)) {
+            xhr.setRequestHeader(header, headers[header]);
+          }
+        }
+
+        xhr.timeout = settings.timeout;
+        xhr.ontimeout = function (e) {
+          settings.progressObserver && settings.progressObserver.onError(e);
+          o.onError(normalizeError(e, xhr, 'timeout'));
+        };
+
+        if(!!xhr.upload || (!('withCredentials' in xhr) && !!root.XDomainRequest)) {
+          xhr.onload = function(e) {
+            if(settings.progressObserver) {
+              settings.progressObserver.onNext(e);
+              settings.progressObserver.onCompleted();
+            }
+            processResponse(xhr, e);
+          };
+
+          if(settings.progressObserver) {
+            xhr.onprogress = function(e) {
+              settings.progressObserver.onNext(e);
+            };
+          }
+
+          xhr.onerror = function(e) {
+            settings.progressObserver && settings.progressObserver.onError(e);
+            o.onError(normalizeError(e, xhr, 'error'));
+            state.isDone = true;
+          };
+
+          xhr.onabort = function(e) {
+            settings.progressObserver && settings.progressObserver.onError(e);
+            o.onError(normalizeError(e, xhr, 'abort'));
+            state.isDone = true;
+          };
+        } else {
+          xhr.onreadystatechange = function (e) {
+            xhr.readyState === 4 && processResponse(xhr, e);
+          };
+        }
+
+        var contentType = settings.headers['Content-Type'] ||
+            settings.headers['Content-type'] ||
+            settings.headers['content-type'];
+        if (settings.hasContent && contentType === 'application/x-www-form-urlencoded' && typeof settings.body !== 'string') {
+          var newBody = [];
+          for (var prop in settings.body) {
+            if (hasOwnProperty.call(settings.body, prop)) {
+              newBody.push(prop + '=' + settings.body[prop]);
+            }
+          }
+          settings.body = newBody.join('&');
+        }
+
+        xhr.send(settings.hasContent && settings.body || null);
+      } catch (e) {
+        o.onError(e);
+      }
+
+      return new AjaxDisposable(state, xhr);
     };
 
-    function AjaxDisposable(xhr, parent) {
+    function AjaxDisposable(state, xhr) {
+      this._state = state;
       this._xhr = xhr;
-      this._parent = parent;
       this.isDisposed = false;
     }
 
     AjaxDisposable.prototype.dispose = function () {
       if (!this.isDisposed) {
         this.isDisposed = true;
-        if (!this._parent._isDone && this._xhr.readyState !== 4) { this._xhr.abort(); }
+        if (!this._state.isDone && this._xhr.readyState !== 4) { this._xhr.abort(); }
       }
     };
 
@@ -486,6 +575,7 @@
       async: true,
       headers: {},
       responseType: 'text',
+      timeout: 0,
       createXHR: function(){
         return this.crossDomain ? getCORSRequest() : getXMLHttpRequest()
       },
@@ -503,90 +593,12 @@
       }
     }
 
-    var normalizeError = settings.normalizeError;
-    var normalizeSuccess = settings.normalizeSuccess;
-
     if (!settings.crossDomain && !settings.headers['X-Requested-With']) {
       settings.headers['X-Requested-With'] = 'XMLHttpRequest';
     }
     settings.hasContent = settings.body !== undefined;
 
-    return new AnonymousObservable(function (o) {
-      var isDone = false;
-      var xhr;
-
-      var processResponse = function(xhr, e){
-        var status = xhr.status === 1223 ? 204 : xhr.status;
-        if ((status >= 200 && status <= 300) || status === 0 || status === '') {
-          o.onNext(normalizeSuccess(e, xhr, settings));
-          o.onCompleted();
-        } else {
-          o.onError(normalizeError(e, xhr, 'error'));
-        }
-        isDone = true;
-      };
-
-      try {
-        xhr = settings.createXHR();
-      } catch (err) {
-        return o.onError(err);
-      }
-
-      try {
-        if (settings.user) {
-          xhr.open(settings.method, settings.url, settings.async, settings.user, settings.password);
-        } else {
-          xhr.open(settings.method, settings.url, settings.async);
-        }
-
-        var headers = settings.headers;
-        for (var header in headers) {
-          if (hasOwnProperty.call(headers, header)) {
-            xhr.setRequestHeader(header, headers[header]);
-          }
-        }
-
-        if(!!xhr.upload || (!('withCredentials' in xhr) && !!root.XDomainRequest)) {
-          xhr.onload = function(e) {
-            if(settings.progressObserver) {
-              settings.progressObserver.onNext(e);
-              settings.progressObserver.onCompleted();
-            }
-            processResponse(xhr, e);
-          };
-
-          if(settings.progressObserver) {
-            xhr.onprogress = function(e) {
-              settings.progressObserver.onNext(e);
-            };
-          }
-
-          xhr.onerror = function(e) {
-            settings.progressObserver && settings.progressObserver.onError(e);
-            o.onError(normalizeError(e, xhr, 'error'));
-            isDone = true;
-          };
-
-          xhr.onabort = function(e) {
-            settings.progressObserver && settings.progressObserver.onError(e);
-            o.onError(normalizeError(e, xhr, 'abort'));
-            isDone = true;
-          };
-        } else {
-          xhr.onreadystatechange = function (e) {
-            xhr.readyState === 4 && processResponse(xhr, e);
-          };
-        }
-
-        xhr.send(settings.hasContent && settings.body || null);
-      } catch (e) {
-        o.onError(e);
-      }
-
-      return function () {
-        if (!isDone && xhr.readyState !== 4) { xhr.abort(); }
-      };
-    });
+    return new AjaxObservable(settings);
   };
 
   /**
@@ -636,9 +648,6 @@
     });
   };
 
-  /** @private
-   * Destroys the current element
-   */
   var destroy = (function () {
     var trash = 'document' in root && root.document.createElement('div');
     return function (element) {
@@ -646,6 +655,93 @@
       trash.innerHTML = '';
     };
   })();
+
+  var ScriptObservable = (function(__super__) {
+    inherits(ScriptObservable, __super__);
+    function ScriptObservable(settings) {
+      this._settings = settings;
+      __super__.call(this);
+    }
+
+    ScriptObservable.id = 0;
+
+    ScriptObservable.prototype.subscribeCore = function (o) {
+      var settings = {
+        jsonp: 'JSONPCallback',
+        async: true,
+        jsonpCallback: 'rxjsjsonpCallbacks' + 'callback_' + (ScriptObservable.id++).toString(36)
+      };
+
+      if(typeof this._settings === 'string') {
+        settings.url = this._settings;
+      } else {
+        for(var prop in this._settings) {
+          if(hasOwnProperty.call(this._settings, prop)) {
+            settings[prop] = this._settings[prop];
+          }
+        }
+      }
+
+      var script = root.document.createElement('script');
+      script.type = 'text/javascript';
+      script.async = settings.async;
+      script.src = settings.url.replace(settings.jsonp, settings.jsonpCallback);
+
+      root[settings.jsonpCallback] = function(data) {
+        root[settings.jsonpCallback].called = true;
+        root[settings.jsonpCallback].data = data;
+      };
+
+      var handler = function(e) {
+        if(e.type === 'load' && !root[settings.jsonpCallback].called) {
+          e = { type: 'error' };
+        }
+        var status = e.type === 'error' ? 400 : 200;
+        var data = root[settings.jsonpCallback].data;
+
+        if(status === 200) {
+          o.onNext({
+            status: status,
+            responseType: 'jsonp',
+            response: data,
+            originalEvent: e
+          });
+
+          o.onCompleted();
+        }
+        else {
+          o.onError({
+            type: 'error',
+            status: status,
+            originalEvent: e
+          });
+        }
+      };
+
+      script.onload = script.onreadystatechanged = script.onerror = handler;
+
+      var head = root.document.getElementsByTagName('head')[0] || root.document.documentElement;
+      head.insertBefore(script, head.firstChild);
+
+      return new ScriptDisposable(script);
+    };
+
+    function ScriptDisposable(script) {
+      this._script = script;
+      this.isDisposed = false;
+    }
+
+    ScriptDisposable.prototype.dispose = function () {
+      if (!this.isDisposed) {
+        this.isDisposed = true;
+        this._script.onload = this._script.onreadystatechanged = this._script.onerror = null;
+        destroy(this._script);
+        this._script = null;
+      }
+    };
+
+    return ScriptObservable;
+  }(ObservableBase));
 
   /**
    * Creates an observable JSONP Request with the specified settings.
@@ -659,79 +755,9 @@
    *
    * @returns {Observable} A cold observable containing the results from the JSONP call.
    */
-   dom.jsonpRequest = (function() {
-     var id = 0;
-
-     return function(options) {
-       return new AnonymousObservable(function(observer) {
-
-         var callbackId = 'callback_' + (id++).toString(36);
-
-         var settings = {
-           jsonp: 'JSONPCallback',
-           async: true,
-           jsonpCallback: 'rxjsjsonpCallbacks' + callbackId
-         };
-
-         if(typeof options === 'string') {
-           settings.url = options;
-         } else {
-           for(var prop in options) {
-             if(hasOwnProperty.call(options, prop)) {
-               settings[prop] = options[prop];
-             }
-           }
-         }
-
-         var script = root.document.createElement('script');
-         script.type = 'text/javascript';
-         script.async = settings.async;
-         script.src = settings.url.replace(settings.jsonp, settings.jsonpCallback);
-
-         root[settings.jsonpCallback] = function(data) {
-           root[settings.jsonpCallback].called = true;
-           root[settings.jsonpCallback].data = data;
-         };
-
-         var handler = function(e) {
-           if(e.type === 'load' && !root[settings.jsonpCallback].called) {
-             e = { type: 'error' };
-           }
-           var status = e.type === 'error' ? 400 : 200;
-           var data = root[settings.jsonpCallback].data;
-
-           if(status === 200) {
-             observer.onNext({
-               status: status,
-               responseType: 'jsonp',
-               response: data,
-               originalEvent: e
-             });
-
-             observer.onCompleted();
-           }
-           else {
-             observer.onError({
-               type: 'error',
-               status: status,
-               originalEvent: e
-             });
-           }
-         };
-
-         script.onload = script.onreadystatechanged = script.onerror = handler;
-
-         var head = root.document.getElementsByTagName('head')[0] || root.document.documentElement;
-         head.insertBefore(script, head.firstChild);
-
-         return function() {
-           script.onload = script.onreadystatechanged = script.onerror = null;
-           destroy(script);
-           script = null;
-         };
-       });
-     }
-   }());
+   dom.jsonpRequest = function (settings) {
+     return new ScriptObservable(settings);
+   };
 
   function socketClose(socket, closingObserver, code, reason) {
     if (socket) {

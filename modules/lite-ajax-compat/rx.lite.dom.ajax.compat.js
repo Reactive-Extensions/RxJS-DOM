@@ -200,6 +200,19 @@
           };
         }
 
+        var contentType = settings.headers['Content-Type'] ||
+            settings.headers['Content-type'] ||
+            settings.headers['content-type'];
+        if (settings.hasContent && contentType === 'application/x-www-form-urlencoded' && typeof settings.body !== 'string') {
+          var newBody = [];
+          for (var prop in settings.body) {
+            if (hasOwnProperty.call(settings.body, prop)) {
+              newBody.push(prop + '=' + settings.body[prop]);
+            }
+          }
+          settings.body = newBody.join('&');
+        }
+
         xhr.send(settings.hasContent && settings.body || null);
       } catch (e) {
         o.onError(e);

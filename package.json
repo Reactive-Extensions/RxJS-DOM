@@ -2,7 +2,7 @@
   "name": "rx-dom",
   "title": "The Reactive Extensions Bindings for the DOM.",
   "description": "Library for using DOM elements as well as Ajax requests",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "homepage": "https://github.com/Reactive-Extensions/RxJS-DOM",
   "author": {
     "name": "Microsoft",

@@ -550,6 +550,7 @@ module.exports = function (grunt) {
   // Default task(s).
   grunt.registerTask('default', [
     'concat:main',
+    'concat:main-compat',
     'concat:main-ajax',
     'concat:main-events',
     'concat:main-html',
@@ -565,6 +566,7 @@ module.exports = function (grunt) {
     'concat:lite-concurrency',
 
     'uglify:main',
+    'uglify:main-compat',
     'uglify:main-ajax',
     'uglify:main-events',
     'uglify:main-html',
