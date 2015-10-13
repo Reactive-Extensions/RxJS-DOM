@@ -33,8 +33,6 @@
 
   var Observable = Rx.Observable,
     ObservableBase = Rx.ObservableBase,
-    observableProto = Observable.prototype,
-    AnonymousObservable = Rx.AnonymousObservable,
     AbstractObserver = Rx.internals.AbstractObserver,
     observerCreate = Rx.Observer.create,
     observableCreate = Rx.Observable.create,
@@ -67,7 +65,7 @@
   function tryCatch(fn) {
     if (!isFunction(fn)) { throw new TypeError('fn must be a function'); }
     return tryCatcherGen(fn);
-  };
+  }
 
   function thrower(e) {
     throw e;

@@ -8,7 +8,12 @@ for (var i = 0; i < files.length; i++) {
   var stat = fs.statSync(file);
   if (stat.isDirectory()) {
     console.log('publishing %s', file);
-    execSync('npm publish ' + file);
+    try {
+      execSync('npm publish ' + file);
+    } catch (e) {
+      console.log('error in publishing %s: %s', file, e);
+    }
+
     console.log('published %s', file);
   }
 }

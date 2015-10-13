@@ -63,22 +63,100 @@
     }
 
     AjaxObservable.prototype.subscribeCore = function (o) {
+      var state = { isDone: false };
       var xhr;
-      this._isDone = false;
 
+      var settings = this._settings;
+      var normalizeError = settings.normalizeError;
+      var normalizeSuccess = settings.normalizeSuccess;
 
+      var processResponse = function(xhr, e){
+        var status = xhr.status === 1223 ? 204 : xhr.status;
+        if ((status >= 200 && status <= 300) || status === 0 || status === '') {
+          o.onNext(normalizeSuccess(e, xhr, settings));
+          o.onCompleted();
+        } else {
+          o.onError(settings.normalizeError(e, xhr, 'error'));
+        }
+        state.isDone = true;
+      };
+
+      try {
+        xhr = settings.createXHR();
+      } catch (err) {
+        return o.onError(err);
+      }
+
+      try {
+        if (settings.user) {
+          xhr.open(settings.method, settings.url, settings.async, settings.user, settings.password);
+        } else {
+          xhr.open(settings.method, settings.url, settings.async);
+        }
+
+        var headers = settings.headers;
+        for (var header in headers) {
+          if (hasOwnProperty.call(headers, header)) {
+            xhr.setRequestHeader(header, headers[header]);
+          }
+        }
+
+        xhr.timeout = settings.timeout;
+        xhr.ontimeout = function (e) {
+          settings.progressObserver && settings.progressObserver.onError(e);
+          o.onError(normalizeError(e, xhr, 'timeout'));
+        };
+
+        if(!!xhr.upload || (!('withCredentials' in xhr) && !!root.XDomainRequest)) {
+          xhr.onload = function(e) {
+            if(settings.progressObserver) {
+              settings.progressObserver.onNext(e);
+              settings.progressObserver.onCompleted();
+            }
+            processResponse(xhr, e);
+          };
+
+          if(settings.progressObserver) {
+            xhr.onprogress = function(e) {
+              settings.progressObserver.onNext(e);
+            };
+          }
+
+          xhr.onerror = function(e) {
+            settings.progressObserver && settings.progressObserver.onError(e);
+            o.onError(normalizeError(e, xhr, 'error'));
+            state.isDone = true;
+          };
+
+          xhr.onabort = function(e) {
+            settings.progressObserver && settings.progressObserver.onError(e);
+            o.onError(normalizeError(e, xhr, 'abort'));
+            state.isDone = true;
+          };
+        } else {
+          xhr.onreadystatechange = function (e) {
+            xhr.readyState === 4 && processResponse(xhr, e);
+          };
+        }
+
+        xhr.send(settings.hasContent && settings.body || null);
+      } catch (e) {
+        o.onError(e);
+      }
+
+      return new AjaxDisposable(state, xhr);
     };
 
-    function AjaxDisposable(xhr, parent) {
+    function AjaxDisposable(state, xhr) {
+      this._state = state;
       this._xhr = xhr;
-      this._parent = parent;
       this.isDisposed = false;
     }
 
     AjaxDisposable.prototype.dispose = function () {
       if (!this.isDisposed) {
         this.isDisposed = true;
-        if (!this._parent._isDone && this._xhr.readyState !== 4) { this._xhr.abort(); }
+        if (!this._state.isDone && this._xhr.readyState !== 4) { this._xhr.abort(); }
       }
     };
 
@@ -112,6 +190,7 @@
       async: true,
       headers: {},
       responseType: 'text',
+      timeout: 0,
       createXHR: function(){
         return this.crossDomain ? getCORSRequest() : getXMLHttpRequest()
       },
@@ -129,90 +208,12 @@
       }
     }
 
-    var normalizeError = settings.normalizeError;
-    var normalizeSuccess = settings.normalizeSuccess;
-
     if (!settings.crossDomain && !settings.headers['X-Requested-With']) {
       settings.headers['X-Requested-With'] = 'XMLHttpRequest';
     }
     settings.hasContent = settings.body !== undefined;
 
-    return new AnonymousObservable(function (o) {
-      var isDone = false;
-      var xhr;
-
-      var processResponse = function(xhr, e){
-        var status = xhr.status === 1223 ? 204 : xhr.status;
-        if ((status >= 200 && status <= 300) || status === 0 || status === '') {
-          o.onNext(normalizeSuccess(e, xhr, settings));
-          o.onCompleted();
-        } else {
-          o.onError(normalizeError(e, xhr, 'error'));
-        }
-        isDone = true;
-      };
-
-      try {
-        xhr = settings.createXHR();
-      } catch (err) {
-        return o.onError(err);
-      }
-
-      try {
-        if (settings.user) {
-          xhr.open(settings.method, settings.url, settings.async, settings.user, settings.password);
-        } else {
-          xhr.open(settings.method, settings.url, settings.async);
-        }
-
-        var headers = settings.headers;
-        for (var header in headers) {
-          if (hasOwnProperty.call(headers, header)) {
-            xhr.setRequestHeader(header, headers[header]);
-          }
-        }
-
-        if(!!xhr.upload || (!('withCredentials' in xhr) && !!root.XDomainRequest)) {
-          xhr.onload = function(e) {
-            if(settings.progressObserver) {
-              settings.progressObserver.onNext(e);
-              settings.progressObserver.onCompleted();
-            }
-            processResponse(xhr, e);
-          };
-
-          if(settings.progressObserver) {
-            xhr.onprogress = function(e) {
-              settings.progressObserver.onNext(e);
-            };
-          }
-
-          xhr.onerror = function(e) {
-            settings.progressObserver && settings.progressObserver.onError(e);
-            o.onError(normalizeError(e, xhr, 'error'));
-            isDone = true;
-          };
-
-          xhr.onabort = function(e) {
-            settings.progressObserver && settings.progressObserver.onError(e);
-            o.onError(normalizeError(e, xhr, 'abort'));
-            isDone = true;
-          };
-        } else {
-          xhr.onreadystatechange = function (e) {
-            xhr.readyState === 4 && processResponse(xhr, e);
-          };
-        }
-
-        xhr.send(settings.hasContent && settings.body || null);
-      } catch (e) {
-        o.onError(e);
-      }
-
-      return function () {
-        if (!isDone && xhr.readyState !== 4) { xhr.abort(); }
-      };
-    });
+    return new AjaxObservable(settings);
   };
 
   /**

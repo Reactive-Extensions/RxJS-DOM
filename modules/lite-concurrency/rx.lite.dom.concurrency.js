@@ -53,7 +53,7 @@
   function tryCatch(fn) {
     if (!isFunction(fn)) { throw new TypeError('fn must be a function'); }
     return tryCatcherGen(fn);
-  };
+  }
 
   function thrower(e) {
     throw e;

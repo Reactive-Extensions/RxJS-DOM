@@ -50,7 +50,7 @@
       return function handler() {
         var results = arguments[0];
         if (fn) {
-          var results = tryCatch(fn).apply(null, arguments);
+          results = tryCatch(fn).apply(null, arguments);
           if (results === errorObj) { return o.onError(results.e); }
         }
         o.onNext(results);
