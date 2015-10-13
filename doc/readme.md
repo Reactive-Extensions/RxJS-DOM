@@ -74,7 +74,7 @@ Web Sockets
 
 Web Workers
 
-- [`Rx.DOM.fromWebWorker`](operators/fromwebworker.md)
+- [`Rx.DOM.fromWorker`](operators/fromworker.md)
 
 Mutation Observers
 
@@ -85,7 +85,7 @@ Geolocation
 - [`Rx.DOM.geolocation.getCurrentPosition`](operators/getcurrentposition.md)
 - [`Rx.DOM.geolocation.watchPosition`](operators/watchposition.md)
 
-Schedulers
+#### Schedulers
 
 - [`Rx.Scheduler.requestAnimationFrame`](schedulers/requestanimationframe.md)
 - [`Rx.Scheduler.microtask`](schedulers/microtaskscheduler.md)

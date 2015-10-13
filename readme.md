@@ -5,11 +5,36 @@
 [![NuGet](http://img.shields.io/nuget/v/RxJS-Bridges-HTML.svg)](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
-RxJS-DOM <sup>6.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript
+RxJS-DOM <sup>7.0</sup> - HTML DOM Bindings for the Reactive Extensions for JavaScript
 ==========================================================
 ## OVERVIEW
 
-This project provides Reactive Extensions for JavaScript (RxJS) bindings for HTML DOM objects to abstract over the event binding, Ajax requests, Web Sockets, Web Workers, Server-Sent Events, Geolocation and more.  The RxJS libraries are not included with this release and must be installed separately.
+This project provides Reactive Extensions for JavaScript (RxJS) bindings for HTML DOM objects to abstract over the event binding, Ajax requests, Web Sockets, Web Workers, Server-Sent Events, Geolocation and more.  
+## Batteries Included ##
+
+Sure, there are a lot of libraries to get started with the RxJS bindings for the HTML DOM. Confused on where to get started?  Start out with the complete set of functionality with [`rx.dom.js`](doc/readme.md), then you can reduce it to the functionality you require such as only events, or ajax.  If you use RxJS Lite, you can start with the [`rx.lite.dom.js`](modules/lite/readme.md) file and then select the functionality you want from there.
+
+This set of libraries include:
+
+### Main Libraries:
+- [`rx.dom.js`](doc/readme.md)
+- [`rx.dom.compat.js`](doc/readme.md)
+- [`rx.dom.ajax.js`](modules/main-ajax/readme.md)
+- [`rx.dom.ajax.compat.js`](modules/main-ajax-compat/readme.md)
+- [`rx.dom.concurrency.js`](modules/main-ajax-concurrency/readme.md)
+- [`rx.dom.events.js`](modules/main-events/readme.md)
+- [`rx.dom.events.compat.js`](modules/main-events-compat/readme.md)
+- [`rx.dom.html.js`](modules/main-html/readme.md)
+
+### Lite Libraries:
+- [`rx.lite.dom.js`](modules/lite/readme.md)
+- [`rx.lite.dom.compat.js`](modules/lite-compat/readme.md)
+- [`rx.lite.dom.ajax.js`](modules/lite-ajax/readme.md)
+- [`rx.lite.dom.ajax.compat.js`](modules/lite-ajax-compat/readme.md)
+- [`rx.lite.dom.concurrency.js`](modules/lite-ajax-concurrency/readme.md)
+- [`rx.lite.dom.events.js`](modules/lite-events/readme.md)
+- [`rx.lite.dom.events.compat.js`](modules/lite-events-compat/readme.md)
+- [`rx.lite.dom.html.js`](modules/lite-html/readme.md)
 
 ## GETTING STARTED
 
@@ -56,7 +81,7 @@ We'll start out with a basic skeleton for our application with script references
 ```
 The goal here is to take the input from our textbox and debounce it in a way that it doesn't overload the service with requests.  To do that, we'll get the reference to the textInput using the document.getElementById method, then bind to the 'keyup' event using the `Rx.DOM.fromEvent` specialization shortcut for keyups called `Rx.DOM.keyup` which then takes the DOM element event handler and transforms it into an RxJS Observable.
 ```js
-var textInput = document.getElementById('textInput');
+var textInput = document.querySelector('#textInput');
 var throttledInput = Rx.DOM.keyup(textInput);
 ```
 Since we're only interested in the text, we'll use the `map` method to take the event object and return the target's value, or we can call `pluck` to the same effect.
@@ -80,7 +105,7 @@ Lastly, we only want distinct values in our input stream, so we can ignore reque
 Putting it all together, our throttledInput looks like the following:
 
 ```js
-var textInput = document.getElementById('textInput');
+var textInput = document.querySelector('#textInput');
 var throttledInput = Rx.DOM.keyup(textInput)
 	.pluck('target','value')
 	.filter( function (text) {
@@ -123,36 +148,40 @@ function createLineItem(text) {
 	return li;
 }
 
-suggestions.subscribe( function (data) {
-  var results = data.response[1];
+suggestions.subscribe(
+	function (data) {
+	  var results = data.response[1];
 
-  clearSelector(resultList);
+	  clearSelector(resultList);
 
-  for (var i = 0; i < results.length; i++) {
-    resultList.appendChild(createLineItem(results[i]));
-  }
-}, function (e) {
-	clearSelector(resultList);
-  resultList.appendChild(createLineItem('Error: ' + e));
-});
+	  for (var i = 0; i < results.length; i++) {
+	    resultList.appendChild(createLineItem(results[i]));
+	  }
+	},
+	function (e) {
+		clearSelector(resultList);
+  	resultList.appendChild(createLineItem('Error: ' + e));
+	}
+);
 
 ```
 
 We've only scratched the surface of this library in this simple example.
 
-##  API Documentation ##
+## Dive In! ##
 
-You can find the documentation [here](https://github.com/Reactive-Extensions/RxJS-DOM/tree/master/doc) as well as examples [here](https://github.com/Reactive-Extensions/RxJS-DOM/tree/master/examples).
+Please check out:
 
-## Contributing ##
-
-There are lots of ways to [contribute](https://github.com/Reactive-Extensions/RxJS-DOM/wiki/Contributing) to the project, and we appreciate our [contributors](https://github.com/Reactive-Extensions/RxJS-DOM/wiki/Contributors).
-
-You can contribute by reviewing and sending feedback on code checkins, suggesting and trying out new features as they are implemented, submit bugs and help us verify fixes as they are checked in, as well as submit code fixes or code contributions of your own. Note that all code submissions will be rigorously reviewed and tested by the Rx Team, and only those that meet an extremely high bar for both quality and design/roadmap appropriateness will be merged into the source.
+ - [Our Code of Conduct](https://github.com/Reactive-Extensions/RxJS/tree/master/code-of-conduct.md)
+ - [The full documentation](https://github.com/Reactive-Extensions/RxJS-DOM/tree/master/doc)
+ - [Our many great examples](https://github.com/Reactive-Extensions/RxJS-DOM/tree/master/examples)
+ - [Our design guidelines](https://github.com/Reactive-Extensions/RxJS/tree/master/doc/designguidelines)
+ - [Our contribution guidelines](https://github.com/Reactive-Extensions/RxJS/tree/master/contributing.md)
+ - [Our complete Unit Tests](https://github.com/Reactive-Extensions/RxJS/tree/master/tests)
 
 ## LICENSE
 
-Copyright Microsoft Open Technologies
+Copyright Microsoft
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

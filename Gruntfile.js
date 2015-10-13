@@ -562,9 +562,7 @@ module.exports = function (grunt) {
     'concat:lite-events',
     'concat:lite-events-compat',
     'concat:lite-html',
-    'concat:lite-html-compat',
     'concat:lite-concurrency',
-    'concat:lite-concurrency-compat',
 
     'uglify:main',
     'uglify:main-ajax',
@@ -579,9 +577,7 @@ module.exports = function (grunt) {
     'uglify:lite-events',
     'uglify:lite-events-compat',
     'uglify:lite-html',
-    'uglify:lite-html-compat',
     'uglify:lite-concurrency',
-    'uglify:lite-concurrency-compat',
 
     'qunit'
   ]);

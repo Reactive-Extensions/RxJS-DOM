@@ -1,0 +1,11 @@
+{
+  "name": "rx-dom",
+  "scripts": [
+    "dist/rx.dom.js",
+    "dist/rx.dom.map",
+    "dist/rx.dom.min.js",
+    "dist/rx.dom.compat.js",
+    "dist/rx.dom.compat.map",
+    "dist/rx.dom.compat.min.js"
+  ]
+}
