@@ -2,7 +2,7 @@
   "name": "rx-lite-dom-ajax-compat",
   "title": "The Reactive Extensions Bindings for the DOM Ajax, Lite Compat Edition",
   "description": "Library for creating Ajax requests using RxJS for older browsers",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "homepage": "https://github.com/Reactive-Extensions/RxJS-DOM",
   "author": {
     "name": "Microsoft",
