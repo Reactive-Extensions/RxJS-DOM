@@ -2,7 +2,7 @@
   "name": "rx-lite-dom-html",
   "title": "The Reactive Extensions Bindings for the HTML5 DOM, Lite Edition.",
   "description": "Library for using WebSockets, Workers, Geolocation, etc with RxJS",
-  "version": "7.0.2",
+  "version": "7.0.3",
   "homepage": "https://github.com/Reactive-Extensions/RxJS-DOM",
   "author": {
     "name": "Microsoft",

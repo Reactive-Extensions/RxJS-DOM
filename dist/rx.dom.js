@@ -257,6 +257,7 @@
   function getCORSRequest() {
     var xhr = new root.XMLHttpRequest();
     if ('withCredentials' in xhr) {
+      xhr.withCredentials = true;
       return xhr;
     } else if (!!root.XDomainRequest) {
       return new XDomainRequest();

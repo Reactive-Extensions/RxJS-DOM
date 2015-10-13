@@ -2,7 +2,7 @@
   "name": "rx-lite-dom-events",
   "title": "The Reactive Extensions Bindings for the DOM Events, Lite Edition.",
   "description": "Library for using DOM elements events with RxJS",
-  "version": "7.0.2",
+  "version": "7.0.3",
   "homepage": "https://github.com/Reactive-Extensions/RxJS-DOM",
   "author": {
     "name": "Microsoft",
