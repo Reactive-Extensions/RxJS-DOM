@@ -50,7 +50,6 @@ module.exports = function (grunt) {
             'src/headers/header.js',
             'src/internal/trycatch.js',
 
-            'src/events/addeventlistenerpolyfill.js',
             'src/events/fromevent.js',
             'src/events/events.js',
             'src/events/ready.js',
@@ -119,7 +118,6 @@ module.exports = function (grunt) {
             'src/headers/header.events.js',
             'src/internal/trycatch.js',
 
-            'src/events/addeventlistenerpolyfill.js',
             'src/events/fromevent.js',
             'src/events/events.js',
             'src/events/ready.js',
@@ -222,7 +220,6 @@ module.exports = function (grunt) {
             'src/headers/header.js',
             'src/internal/trycatch.js',
 
-            'src/events/addeventlistenerpolyfill.js',
             'src/events/fromevent.js',
             'src/events/events.js',
             'src/eventsource.js',
@@ -291,7 +288,6 @@ module.exports = function (grunt) {
             'src/headers/header.events.js',
             'src/internal/trycatch.js',
 
-            'src/events/addeventlistenerpolyfill.js',
             'src/events/fromevent.js',
             'src/events/events.js',
             'src/events/ready.js',
