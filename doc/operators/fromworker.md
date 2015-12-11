@@ -37,4 +37,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.worker.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.worker.js)
+- [`/tests/dom/tests.worker.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/dom/tests.worker.js)
