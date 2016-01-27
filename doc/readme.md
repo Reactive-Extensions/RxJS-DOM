@@ -87,9 +87,9 @@ Geolocation
 
 #### Schedulers
 
-- [`Rx.Scheduler.requestAnimationFrame`](schedulers/requestanimationframe.md)
+- [`Rx.Scheduler.requestAnimationFrame`](schedulers/requestanimationframescheduler.md)
 - [`Rx.Scheduler.microtask`](schedulers/microtaskscheduler.md)
 
 [`FileReader`](https://developer.mozilla.org/en-US/docs/Web/API/FileReader)
 
-- [`Rx.DOM.fromReader`](operators/fromreader.md)
+- [`Rx.DOM.fromReader`](operators/filereader.md)
