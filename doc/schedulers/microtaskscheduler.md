@@ -20,7 +20,7 @@ obs.subscribe(function (x) {
 ### Location
 
 File:
-- [`/src/microtaskscheduler.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/microtaskscheduler.js)
+- [`/src/concurrency/microtaskscheduler.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/src/concurrency/microtaskscheduler.js)
 
 Dist:
 - [`rx.dom.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.js) | - [`rx.dom.compat.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/dist/rx.dom.compat.js)
@@ -38,4 +38,4 @@ NuGet Packages:
 - [`RxJS-Bridges-HTML`](http://www.nuget.org/packages/RxJS-Bridges-HTML/)
 
 Unit Tests:
-- [`/tests/tests.microtask.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/tests.microtask.js)
+- [`/tests/concurrency/tests.microtaskscheduler.js`](https://github.com/Reactive-Extensions/RxJS-DOM/blob/master/tests/concurrency/tests.microtaskscheduler.js)
