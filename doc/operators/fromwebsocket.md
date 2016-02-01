@@ -29,7 +29,7 @@ var closingObserver = Rx.Observer.create(function() {
 
 // create a web socket subject
 socket = Rx.DOM.fromWebSocket(
-  'ws://echo.websockets.org',
+  'ws://echo.websocket.org',
   null, // no protocol
   openObserver,
   closingObserver);
