@@ -95,6 +95,10 @@
           xhr.open(settings.method, settings.url, settings.async);
         }
 
+        if (settings.responseType === 'blob') {
+          xhr.responseType = 'blob';
+        }
+        
         var headers = settings.headers;
         for (var header in headers) {
           if (hasOwnProperty.call(headers, header)) {
