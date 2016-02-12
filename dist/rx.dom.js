@@ -257,7 +257,7 @@
   function getCORSRequest() {
     var xhr = new root.XMLHttpRequest();
     if ('withCredentials' in xhr) {
-      xhr.withCredentials = true;
+      xhr.withCredentials = this.withCredentials ? true : false;
       return xhr;
     } else if (!!root.XDomainRequest) {
       return new XDomainRequest();
@@ -436,8 +436,9 @@
       headers: {},
       responseType: 'text',
       timeout: 0,
+      withCredentials: false,
       createXHR: function(){
-        return this.crossDomain ? getCORSRequest() : getXMLHttpRequest()
+        return this.crossDomain ? getCORSRequest.call(this) : getXMLHttpRequest()
       },
       normalizeError: normalizeAjaxErrorEvent,
       normalizeSuccess: normalizeAjaxSuccessEvent
