@@ -14,11 +14,12 @@ OR
     - `async` *(Boolean)*: Whether the request is async. The default is `true`.
     - `body` *(Object)*: Optional body
     - `crossDomain` *(Boolean)*: true if to use CORS, else false. The default is `false`.
+    - `withCredentials` *(Boolean)*: true if to use CORS withCredentials, else false. The default is `false`.
     - `headers` *(Object)*: Optional headers
     - `method` *(String)*: Method of the request, such as GET, POST, PUT, PATCH, DELETE. The default is GET.
     - `password` *(String)*: The password for the request.
     - `progressObserver` *(Observer)*: An optional `Observer` which listen to XHR2 progress events or error timeout values.
-    - `responseType` *(String)*: The response type. Either can be 'json' or 'text'. The default is 'text'
+    - `responseType` *(String)*: The response type. Either can be 'json', 'text' or 'blob'. The default is 'text'
     - `timeout`: `Number` - a number representing the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
     - `url` *(String)*: URL of the request
     - `user` *(String)*: The user for the request.
