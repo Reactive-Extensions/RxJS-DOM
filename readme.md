@@ -70,7 +70,7 @@ Let's walk through a simple yet powerful example of the Reactive Extensions for 
 We'll start out with a basic skeleton for our application with script references to RxJS Lite based methods, and the RxJS Bindings for HTML DOM, along with a textbox for input and a list for our results.
 ```html
 <script type="text/javascript" src="rx.lite.js"></script>
-<script type="text/javascript" src="rx.dom.js"><script>
+<script type="text/javascript" src="rx.dom.js"></script>
 <script type="text/javascript">
 
 </script>
